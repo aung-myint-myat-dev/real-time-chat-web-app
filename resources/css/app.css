@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    --color-brand-50: #f5f3ff;
+    --color-brand-100: #ede9fe;
+    --color-brand-500: #6366f1; /* CheckChat Core Color */
+    --color-brand-600: #4f46e5;
+    --color-brand-700: #4338ca;
+    --color-brand-900: #312e81;
+}
+
+@variant dark (&:where(.dark, .dark *));
