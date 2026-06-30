@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('chat_group_members', function (Blueprint $table) {
+        Schema::create('typing_statuses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('group_id')->constrained('chat_groups')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->enum('role', ['admin', 'member', 'owner'])->default('member');
-            $table->boolean('is_active');
+            $table->foreignId('conversation_id')->constrained('conversations')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->boolean('is_typing')->default(false);
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('chat_group_members');
+        Schema::dropIfExists('typing_statuses');
     }
 };
