@@ -3,18 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
+require __DIR__.'/auth.php';
+
+Route::middleware(['guest'])->get('/', function () {
     return Inertia::render('Welcome');
-});
+})->name('welcome');
 
-Route::get('/login', function () {
-    return Inertia::render('auth/Login');
-});
-
-Route::get('/register', function () {
-    return Inertia::render('auth/Register');
-});
-
-Route::get('/chat', function () {
+Route::middleware(['auth'])->get('/chat', function () {
     return Inertia::render('Chat');
-});
+})->name('chatboard');

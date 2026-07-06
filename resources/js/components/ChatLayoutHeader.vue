@@ -48,10 +48,10 @@ const { isOpen, toggleChatSidebar } = useSidebar();
                 </span>
             </div>
 
-            <!-- <Link href="/logout" method="post" as="button"
+            <Link href="/logout" method="post" as="button"
                 class="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-rose-500/30 px-3 py-1.5 rounded-md transition bg-white dark:bg-slate-800 cursor-pointer">
             Logout
-            </Link> -->
+            </Link>
         </div>
     </header>
 </template>

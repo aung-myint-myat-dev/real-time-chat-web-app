@@ -37,7 +37,7 @@
             </form>
 
             <p class="mt-6 text-sm text-center text-slate-500 dark:text-slate-400">
-                New here? <Link href="/register" class="text-brand-500 font-medium hover:underline">Create an account
+                New here? <Link href="/auth/register" class="text-brand-500 font-medium hover:underline">Create an account
                 </Link>
             </p>
         </div>
@@ -54,7 +54,7 @@ const form = useForm({
 })
 
 const submit = () => {
-    form.post('/login', {
+    form.post('/auth/login', {
         onFinish: () => form.reset('password'),
     })
 }

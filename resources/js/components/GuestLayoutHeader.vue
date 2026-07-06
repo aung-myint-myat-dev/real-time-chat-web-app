@@ -22,11 +22,11 @@
                     <Moon v-else size="20" />
                 </button>
 
-                <Link href="/login"
+                <Link href="/auth/login"
                     class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-brand-500 dark:hover:text-brand-400 transition-colors">
                     Login
                 </Link>
-                <Link href="/register"
+                <Link href="/auth/register"
                     class="px-4 py-2 text-sm font-semibold text-white bg-brand-500 hover:bg-brand-600 rounded-xl shadow-xs transition-all">
                     Register
                 </Link>
