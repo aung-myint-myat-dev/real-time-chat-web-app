@@ -54,7 +54,7 @@
 
             <!-- Login link -->
             <p class="mt-6 text-sm text-center text-slate-500 dark:text-slate-400">
-                Already have an account? <Link href="/login" class="text-brand-500 font-medium hover:underline">Log in
+                Already have an account? <Link href="/auth/login" class="text-brand-500 font-medium hover:underline">Log in
                 </Link>
             </p>
         </div>
@@ -73,7 +73,7 @@ const form = useForm({
 })
 
 const submit = () => {
-    form.post('/register', {
+    form.post('/auth/register', {
         onFinish: () => form.reset('password', 'password_confirmation'),
     })
 }
