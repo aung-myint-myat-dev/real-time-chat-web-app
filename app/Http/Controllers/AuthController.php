@@ -69,6 +69,17 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        if ($user = $request->user()) {
+            $user->forceFill([
+                'remember_token' => null,
+            ])->save();
+        }
+
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
