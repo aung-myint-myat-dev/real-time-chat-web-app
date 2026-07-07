@@ -48,7 +48,7 @@ class AuthController extends Controller
 
     public function verifyEmailPage()
     {
-        return Inertia::render('auth/VerifyEmail');   
+        return Inertia::render('auth/VerifyEmail');
     }
 
     public function verifyEmail(EmailVerificationRequest $request)
@@ -69,9 +69,17 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        if ($user = $request->user()) {
+            $user->forceFill([
+                'remember_token' => null,
+            ])->save();
+        }
+
         Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('welcome');
     }
 }

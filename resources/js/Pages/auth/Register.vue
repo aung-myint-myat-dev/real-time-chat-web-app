@@ -18,6 +18,15 @@
                     </div>
                 </div>
 
+                <!-- Username Input -->
+                <div class="space-y-2">
+                    <label class="text-sm block font-medium text-slate-700 dark:text-slate-300">Username</label>
+                    <input v-model="form.username" type="text" required placeholder="alex_mercer"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-hidden transition-all" />
+                    <div v-if="form.errors.username" class="text-xs text-rose-500 mt-1 font-medium">{{ form.errors.username }}
+                    </div>
+                </div>
+
                 <!-- Email Input -->
                 <div class="space-y-1">
                     <label class="text-sm block font-medium text-slate-700 dark:text-slate-300">Email Address</label>
@@ -67,6 +76,7 @@ import { Link, useForm } from '@inertiajs/vue3'
 
 const form = useForm({
     name: '',
+    username: '',
     email: '',
     password: '',
     password_confirmation: '',

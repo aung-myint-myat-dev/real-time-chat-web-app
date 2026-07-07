@@ -29,6 +29,15 @@
                         form.errors.password }}</div>
                 </div>
 
+                <!-- Remember Me Input -->
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input v-model="form.remember_me" type="checkbox"
+                            class="rounded border-slate-200 dark:border-slate-700 bg-transparent text-brand-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-hidden transition-all" />
+                        <span class="ml-2 text-sm text-slate-700 dark:text-slate-300">Remember me</span>
+                    </label>
+                </div>
+
                 <!-- Signin Button -->
                 <button type="submit" :disabled="form.processing"
                     class="w-full py-2.5 mt-2 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white font-semibold transition-all shadow-md shadow-brand-500/10">
@@ -51,6 +60,7 @@ import { Link, useForm } from '@inertiajs/vue3'
 const form = useForm({
     email: '',
     password: '',
+    remember_me: ''
 })
 
 const submit = () => {
