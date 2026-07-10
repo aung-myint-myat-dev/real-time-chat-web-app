@@ -53,7 +53,6 @@
 
 <script setup>
 import { Link, useForm } from '@inertiajs/vue3'
-import AuthLayout from '../../layouts/AuthLayout.vue'
 import GuestLayout from '../../layouts/GuestLayout.vue'
 
 defineOptions({
