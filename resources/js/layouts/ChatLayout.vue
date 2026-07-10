@@ -1,70 +1,65 @@
+<script setup>
+import { Link } from '@inertiajs/vue3';
+import ChatLayoutSidebar from '../components/app/ChatLayoutSidebar.vue';
+import { computed, provide, ref } from 'vue';
+import { provideTheme } from '../composables/useTheme.js';
+import { MessageCircleWarningIcon } from '@lucide/vue';
+
+provideTheme();
+
+defineProps({
+  chats: Array,
+  activeChatId: String,
+})
+
+const selectedChatId = ref(null);
+const currentView = ref('lists');
+
+const handleSelectedChatId = (id) => {
+  selectedChatId.value = id;
+  currentView.value = 'chat';
+}
+
+const handleBackToLists = () => {
+  currentView.value = 'lists';
+  selectedChatId.value = null;
+}
+
+provide('BackToListsHandaler', { handleBackToLists });
+
+</script>
+
 <template>
-  <div
-    class="h-screen flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors duration-300 overflow-hidden">
+  <div class="h-screen font-brand flex bg-background text-text-color">
 
-    <ChatLayoutHeader/>
+    <!-- Layout Sidebar -->
+    <div :class="[
+      currentView === 'lists' ? 'block' : 'hidden sm:block',
+      'w-full sm:w-sm'
+    ]">
+      <ChatLayoutSidebar :chats="chats" :active-chat-id="selectedChatId" @select-chat="handleSelectedChatId($event)" />
+    </div>
 
-    <div class="grow flex relative overflow-hidden">
+    <!-- Main Content -->
+    <div v-if="selectedChatId" :class="[
+      currentView === 'chat' ? 'block' : 'hidden sm:block',
+      'flex-1',
+    ]">
+      <slot />
+    </div>
 
-      <aside
-        class="hidden md:flex flex-col w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700/60 shrink-0 transition-colors">
-        <slot name="sidebar" />
-      </aside>
-
-      <div v-if="isOpen" class="md:hidden fixed inset-0 z-40 flex">
-        <div @click="toggleChatSidebar"
-          class="fixed inset-0 bg-slate-900/50 dark:bg-slate-950/60 backdrop-blur-xs"></div>
-
-        <aside
-          class="relative flex flex-col w-72 max-w-xs bg-white dark:bg-slate-800 h-full shadow-xl animate-slide-in transition-colors">
-          <div class="p-4 border-b border-slate-100 dark:border-slate-700/50 flex items-center justify-between">
-            <span class="font-bold text-slate-700 dark:text-slate-300">Chats list</span>
-            <button @click="toggleChatSidebar"
-              class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer">
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div class="grow overflow-y-auto" @click="toggleChatSidebar">
-            <slot name="sidebar" />
-          </div>
-        </aside>
+    <div v-else :class="[
+      'flex-1 items-center justify-center',
+      currentView === 'chat' ? 'flex' : 'hidden sm:flex'
+    ]">
+      <div class="flex flex-col justify-center items-center gap-2">
+        <div class="h-14 w-14 text-white bg-brand-500 rounded-full flex items-center justify-center">
+          <MessageCircleWarningIcon/>
+        </div>
+        <h2 class="font-bold text-gray-500">No messages yet
+        </h2>
+        <p class="text-gray-500">Start a conversation with your friends and connect with them instantly.</p>
       </div>
-
-      <main class="grow flex flex-col min-w-0 bg-slate-50 dark:bg-slate-900 relative overflow-hidden transition-colors">
-        <slot />
-      </main>
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref } from 'vue'
-import { Link } from '@inertiajs/vue3'
-import { provideTheme } from '../composables/useTheme';
-import ChatLayoutHeader from '../components/ChatLayoutHeader.vue';
-import { provideSidebar } from '../composables/useSidebar.js';
-
-const { isOpen, toggleChatSidebar} = provideSidebar();
-
-const isMobileSidebarOpen = ref(false);
-
-const { isDarkMode, toggleTheme } = provideTheme();
-</script>
-
-<style scoped>
-.animate-slide-in {
-  animation: slideIn 0.2s ease-out forwards;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(-100%);
-  }
-
-  to {
-    transform: translateX(0);
-  }
-}
-</style>
