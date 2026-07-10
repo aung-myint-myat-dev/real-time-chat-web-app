@@ -1,15 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+@layer base {}
+
 @theme {
-    --color-brand-50: #f5f3ff;
-    --color-brand-100: #ede9fe;
-    --color-brand-500: #6366f1; /* CheckChat Core Color */
-    --color-brand-600: #4f46e5;
-    --color-brand-700: #4338ca;
-    --color-brand-900: #312e81;
+    --font-brand: "Inter", sans-serif;
+
+    --color-brand-50: #E6F1FF;
+    --color-brand-100: #B8D9FF;
+    --color-brand-200: #8AC0FF;
+    --color-brand-300: #5CA8FF;
+    --color-brand-400: #2E8FFF;
+    --color-brand-500: #0076FC;
+    --color-brand-600: #0062D1;
+    --color-brand-700: #004CA3;
+    --color-brand-800: #003775;
+    --color-brand-900: #002147;
+    --color-brand-950: #000C1A;
+
+    --color-background: var(--background);
+    --color-border-color: var(--border);
+    --color-text-color: var(--text);
 }
 
-@variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+    --text: #0A120A;
+    --background: #f9fafb;
+    --border: #E7E7E7;
+}
+
+.dark {
+    --text: #ffff;
+    --background: #0A120A;
+    --border: #1F331F;
+}
+
+.transition-duration {
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function)
+            /* cubic-bezier(0.4, 0, 0.2, 1) */
+        );
+    transition-duration: 300ms;
+}
+
+@layer components {
+    .btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+}

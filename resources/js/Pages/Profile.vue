@@ -2,8 +2,10 @@
 import AppLayout from '../layouts/AppLayout.vue';
 
 defineOptions({
-    layout: (props) => [AppLayout, { title: "Settings"}],
+    layout: (props) => [AppLayout, {title: "Profile"}],
 })
 </script>
 
-<template>Setting</template>
+<template>
+    Profile
+</template>

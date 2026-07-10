@@ -1,39 +1,40 @@
 <script setup>
-import { onMounted, ref } from 'vue';
-import ChatLayout from '@/layouts/ChatLayout.vue';
-import ChatMessage from '../components/ChatMessage.vue';
-import { chatMessages } from './data.js';
-import ChatSidebar from '../components/ChatSidebar.vue';
-import ChatInput from '../components/ChatInput.vue';
-import ChatStarterProfile from '../components/ChatStarterProfile.vue';
+import { ArrowLeft } from '@lucide/vue';
+import ChatLayout from '../layouts/ChatLayout.vue';
+import { inject } from 'vue';
+import { Link } from '@inertiajs/vue3';
+import { useTheme } from '../composables/useTheme.js';
 
-const messages = ref([]);
+defineOptions({
+    layout: ChatLayout,
+})
 
-onMounted(() => {
-    if (typeof window !== 'undefined') {
-        messages.value = chatMessages;
-    }
+const { handleBackToLists } = inject('BackToListsHandaler')
+const { isDarkMode, toggleTheme } = useTheme();
+defineProps({
+    chat: Object,
 })
 
 </script>
-
 <template>
-    <ChatLayout>
-        <template #sidebar>
-            <ChatSidebar/>
-        </template>
-        <div class="h-full flex flex-col overflow-hidden">
-            <!-- Chat messages -->
-            <div class="flex-1 overflow-hidden overflow-y-auto px-4">
-                <ChatStarterProfile/>
-                <ChatMessage v-for="message in messages" :message="message.message" :key="message.id"
-                    :is-me="message.isMe" :sender-name="message.sender" />
-            </div>
-
-            <!-- Sent message form -->
-            <div>
-                <ChatInput />
+    <div>
+        <div class="border-b border-border-color h-16 flex items-center px-4">
+            <div class="flex items-center gap-4">
+                <button class="sm:hidden" @click="handleBackToLists">
+                    <ArrowLeft/>
+                </button>
+                <div class="relative size-10 shrink-0">
+                    <img :src="chat.avatar"
+                        class="size-full object-cover rounded-full border border-slate-200 dark:border-slate-700">
+                    <span
+                        class="absolute bottom-0 right-0 size-3 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
+                </div>
+                <div>
+                    <h2 class="font-semibold">{{ chat.name }}</h2>
+                    <p class="text-xs text-gray-500">{{ chat.time }}</p>
+                </div>
+                <button @click="toggleTheme" class="bg-brand-500 rounded-full px-4 py-2">Mode switch</button>
             </div>
         </div>
-    </ChatLayout>
+    </div>
 </template>
