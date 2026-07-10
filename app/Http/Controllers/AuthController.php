@@ -75,11 +75,6 @@ class AuthController extends Controller
             ])->save();
         }
 
-        // Auth::logout();
-
-        // $request->session()->invalidate();
-        // $request->session()->regenerateToken();
-
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
