@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\UserSearchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -66,6 +67,8 @@ Route::middleware(['auth'])
                 'activeChatId' => $id,
             ]);
         });
+
+        Route::get('/users/search', [UserSearchController::class, 'index']);
 
         Route::get('/settings', function () {
             return Inertia::render('Setting');
