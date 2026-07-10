@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['guest'])
 ->controller(AuthController::class)
 ->prefix('auth')
-->name('auth.')
 ->group(function () {
     Route::get('register', 'showRegisterForm')->name('register');
     Route::post('register', 'register')->name('register.post');
