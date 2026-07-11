@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Conversation;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +19,9 @@ class ConversationFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->sentence(1),
+            'type' => fake()->randomElement(['private', 'group']),
+            'created_by' => User::factory(),
         ];
     }
 }
