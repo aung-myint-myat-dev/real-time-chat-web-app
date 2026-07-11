@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UserSearchRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class UserSearchController extends Controller
 {
@@ -19,7 +20,12 @@ class UserSearchController extends Controller
             ->limit(20)
             ->get();
 
-        return response()->json($users);
-        
+        return Inertia::render('Chat', [
+            'searchUsers' => $users,
+            // 'filters' => [
+            //     'search' => $search 
+            // ]
+        ]);
+
     }
 }

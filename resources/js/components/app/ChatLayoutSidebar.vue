@@ -1,40 +1,35 @@
 <script setup>
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { Bookmark, MessageCircle, Search, Settings, UserCircle } from '@lucide/vue';
-import axios from 'axios';
 import { computed, inject, ref, watch } from 'vue';
 
 const page = usePage();
 defineProps({
     chats: Array,
     activeChatId: String,
+    searchUsers: Array
 })
 
 const searchInput = ref('');
-const searchResult = ref(null);
 let timeout;
 watch(searchInput, value => {
 
     clearTimeout(timeout)
 
     if (value.length < 2) {
-        searchResult.value = null
-        return
+        router.get('/chat', {}, { preserveState: true, replace: true });
+        return;
     }
 
-    timeout = setTimeout(async () => {
+    timeout = setTimeout(() => {
 
-        const { data } = await axios.get('/users/search?', {
-            params: {
-                q: value
-            }
-        })
-        searchResult.value = data;
+        router.get('/users/search',
+            { q: value },
+            { preserveState: true, replace: true, preserveScroll: true });
+
     }, 300)
 
 })
-
-
 
 
 defineEmits(['selectChat'])
@@ -54,21 +49,25 @@ const isLinkActive = (href) => {
     <div class="w-full h-full relative flex flex-col gap-2 border-r border-border-color">
 
         <!-- Search Input -->
-         <div class="h-16 p-4 flex items-center justify-center">
-             <div
-                 class="flex gap-2 p-1.5 w-full border border-border-color shadow-xs rounded-full focus-within:outline focus-within:outline-offset-2 focus-within:outline-brand-500">
-                 <div class="w-6 h-6 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                     <Search class="w-3 h-3" />
-                 </div>
-                 <input v-model="searchInput" type="text" placeholder="Search username" class="flex-1 text-sm focus:outline-none">
-             </div>
-         </div>
+        <div class="h-16 p-4 flex items-center justify-center">
+            <div
+                class="flex gap-2 p-1.5 w-full border border-border-color shadow-xs rounded-full focus-within:outline focus-within:outline-offset-2 focus-within:outline-brand-500">
+                <div
+                    class="w-6 h-6 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                    <Search class="w-3 h-3" />
+                </div>
+                <input v-model="searchInput" type="text" placeholder="Search username"
+                    class="flex-1 text-sm focus:outline-none">
+            </div>
+        </div>
 
-        <div v-if="searchResult">
+        <div v-if="searchUsers">
             <p class="text-sm text-slate-500 dark:text-slate-400 p-2">Search Results:</p>
             <div class="flex flex-col gap-2 p-2">
-                <div v-for="user in searchResult" :key="user.id" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200">
-                    <img :src="user.avatar" class="size-11 object-cover rounded-full border border-slate-200 dark:border-slate-700">
+                <div v-for="user in searchUsers" :key="user.id"
+                    class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200">
+                    <img :src="user.avatar"
+                        class="size-11 object-cover rounded-full border border-slate-200 dark:border-slate-700">
                     <div class="flex-1 min-w-0">
                         <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
                             {{ user.name }}
@@ -78,7 +77,7 @@ const isLinkActive = (href) => {
             </div>
         </div>
 
-         <!-- Chat lists -->
+        <!-- Chat lists -->
         <div v-else class="flex-1 h-full flex flex-col overflow-hidden overflow-y-auto p-2 pb-18">
             <Link v-for="chat in chats" :key="chat.id" :href="`/chat/${chat.id}`" :class="[
                 activeChatId == chat.id ? 'bg-blue-500/20' : ''

@@ -10,6 +10,7 @@ provideTheme();
 defineProps({
   chats: Array,
   activeChatId: String,
+  searchUsers: Array
 })
 
 const selectedChatId = ref(null);
@@ -37,7 +38,7 @@ provide('BackToListsHandaler', { handleBackToLists });
       currentView === 'lists' ? 'block' : 'hidden sm:block',
       'w-full sm:w-sm'
     ]">
-      <ChatLayoutSidebar :chats="chats" :active-chat-id="selectedChatId" @select-chat="handleSelectedChatId($event)" />
+      <ChatLayoutSidebar :chats="chats" :active-chat-id="selectedChatId" :searchUsers="searchUsers" @select-chat="handleSelectedChatId($event)" />
     </div>
 
     <!-- Main Content -->
