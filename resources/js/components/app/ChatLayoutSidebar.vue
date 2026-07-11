@@ -1,13 +1,15 @@
 <script setup>
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Bookmark, MessageCircle, Search, Settings, UserCircle } from '@lucide/vue';
+import { Bookmark, MessageCircle, MessageCircleWarningIcon, Search, Settings, UserCircle } from '@lucide/vue';
 import { computed, inject, ref, watch } from 'vue';
 
 const page = usePage();
 defineProps({
     chats: Array,
     activeChatId: String,
-    searchUsers: Array
+    searchUsers: {
+        default: null
+    }
 })
 
 const searchInput = ref('');
@@ -61,7 +63,7 @@ const isLinkActive = (href) => {
             </div>
         </div>
 
-        <div v-if="searchUsers">
+        <div v-if="searchUsers && searchUsers.length > 0">
             <p class="text-sm text-slate-500 dark:text-slate-400 p-2">Search Results:</p>
             <div class="flex flex-col gap-2 p-2">
                 <div v-for="user in searchUsers" :key="user.id"
@@ -77,8 +79,20 @@ const isLinkActive = (href) => {
             </div>
         </div>
 
+        <div v-if="searchUsers !== null && searchUsers.length === 0"
+            class="flex flex-col flex-1 justify-center items-center gap-2">
+            
+            <div class="h-14 w-14 text-white bg-red-500 rounded-full flex items-center justify-center">
+                <MessageCircleWarningIcon />
+            </div>
+            <h2 class="font-bold text-gray-500">No results yet
+            </h2>
+            
+        </div>
+
+
         <!-- Chat lists -->
-        <div v-else class="flex-1 h-full flex flex-col overflow-hidden overflow-y-auto p-2 pb-18">
+        <div v-if="searchUsers === null" class="flex-1 h-full flex flex-col overflow-hidden overflow-y-auto p-2 pb-18">
             <Link v-for="chat in chats" :key="chat.id" :href="`/chat/${chat.id}`" :class="[
                 activeChatId == chat.id ? 'bg-blue-500/20' : ''
             ]" class="
