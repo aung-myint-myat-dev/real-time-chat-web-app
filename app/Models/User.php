@@ -8,6 +8,8 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -29,5 +31,39 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Conversations created by this user.
+     */
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class, 'created_by');
+    }
+
+    /**
+     * Pivot records for conversations this user is a member of.
+     */
+    public function conversationUsers(): HasMany
+    {
+        return $this->hasMany(ConversationUser::class, 'user_id');
+    }
+
+    /**
+     * Conversations this user is a member of (many-to-many via conversation_users).
+     */
+    public function conversationsAsMember(): BelongsToMany
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_users', 'user_id', 'conversation_id')
+            ->withPivot(['role', 'joined_at', 'last_read_message_id', 'is_muted', 'is_pinned'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Messages sent by this user.
+     */
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'user_id');
     }
 }
