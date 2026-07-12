@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Conversation;
 use App\Models\ConversationUser;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +20,12 @@ class ConversationUserFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'conversation_id' => Conversation::factory(),
+            'user_id' => User::factory(),
+            'role' => 'member',
+            'joined_at' => now(),
+            'is_muted' => true,
+            'is_pinned' => true
         ];
     }
 }
