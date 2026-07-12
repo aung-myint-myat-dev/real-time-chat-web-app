@@ -1,19 +1,18 @@
 <script setup>
 import { ArrowLeft } from '@lucide/vue';
-import ChatLayout from '../layouts/ChatLayout.vue';
 import { inject } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { useTheme } from '../composables/useTheme.js';
+import ChatLayout from '../../layouts/ChatLayout.vue';
+import { useTheme } from '../../composables/useTheme.js';
 
 const props = defineProps({
-    chat: Object,
+    chat: {
+        type: Object,
+        default: null,
+    },
 })
 
-defineOptions({
-    layout: (props) => [ChatLayout, { title: props.chats ?? [] }],
-})
-
-const { handleBackToLists } = inject('BackToListsHandaler')
+// const { handleBackToLists } = inject('BackToListsHandaler')
 const { isDarkMode, toggleTheme } = useTheme();
 
 
@@ -22,18 +21,14 @@ const { isDarkMode, toggleTheme } = useTheme();
     <div>
         <div class="border-b border-border-color h-16 flex items-center px-4">
             <div class="flex items-center gap-4">
-                <button class="md:hidden" @click="handleBackToLists">
-                    <ArrowLeft/>
-                </button>
-                <!-- <div v-if="chat.avatar" class="relative size-10 shrink-0">
-                    <img :src="chat.avatar"
-                        class="size-full object-cover rounded-full border border-slate-200 dark:border-slate-700">
-
+                <!-- <button class="sm:hidden" @click="handleBackToLists">
+                    <ArrowLeft />
+                </button> -->
+                <div class="relative size-10 shrink-0">
+                    <!-- <img v-if="chat.avatar" :src="chat.avatar"
+                        class="size-full object-cover rounded-full border border-slate-200 dark:border-slate-700"> -->
                     <span
                         class="absolute bottom-0 right-0 size-3 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
-                </div> -->
-                <div class="size-10 shrink-0 bg-zinc-200 font-semibold text-text-color dark:bg-zinc-500 rounded-full flex items-center justify-center">
-                    PF
                 </div>
                 <div>
                     <h2 class="font-semibold">{{ props.chat?.name }}</h2>

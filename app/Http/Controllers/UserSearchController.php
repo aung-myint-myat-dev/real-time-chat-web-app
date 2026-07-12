@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserSearchRequest;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class UserSearchController extends Controller
@@ -14,17 +15,18 @@ class UserSearchController extends Controller
 
         $users = User::query()
             ->select(['id', 'name', 'username', 'avatar'])
-            ->where('id', '!=', auth()->id())
-            ->where('username', 'like', "{$search}%")
+            ->where('id', '!=', Auth::id())
+            ->where('username', 'like', "{$search}")
             ->limit(20)
             ->get();
 
-        return Inertia::render('Chat', [
-            'searchUsers' => $users,
-            // 'filters' => [
-            //     'search' => $search 
-            // ]
-        ]);
+        // return Inertia::render('Chat', [
+        //     'searchUsers' => $users,
+        //     // 'filters' => [
+        //     //     'search' => $search 
+        //     // ]
+        // ]);
 
+        return response()->json($users);
     }
 }

@@ -1,21 +1,16 @@
 <?php
 
 use App\Http\Controllers\UserSearchController;
+use App\Models\Conversation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
-use function Termwind\render;
 
 require __DIR__ . '/auth.php';
 
 Route::middleware(['guest'])->get('/', function () {
     return Inertia::render('Welcome');
 })->name('welcome');
-
-// Route::middleware(['auth'])->get('/chat', function () {
-//     return Inertia::render('Chat');
-// })->name('chatboard');
 
 Route::middleware(['auth'])
     ->group(function () {
