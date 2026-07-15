@@ -38,7 +38,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function conversations(): HasMany
     {
-        return $this->hasMany(Conversation::class, 'created_by');
+        return $this->hasMany(Conversation::class, 'conversation_users');
     }
 
     /**

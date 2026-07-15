@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -38,7 +40,7 @@ class MessageFactory extends Factory
     /**
      * Set the user (sender) for this message.
      */
-    public function sentBy(User $user): static
+    public function sentBy(Usere $user): static
     {
         return $this->state(fn (array $attributes) => [
             'user_id' => $user->id,

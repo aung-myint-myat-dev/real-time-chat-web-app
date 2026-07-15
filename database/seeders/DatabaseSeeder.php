@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Conversation;
+use App\Models\ConversationUser;
+use App\Models\Message;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;

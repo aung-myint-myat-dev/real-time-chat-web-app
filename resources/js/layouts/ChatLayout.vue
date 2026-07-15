@@ -4,19 +4,19 @@ import ChatLayoutSidebar from '../components/app/ChatLayoutSidebar.vue';
 import { computed, onMounted, provide, ref, watch } from 'vue';
 import { provideTheme } from '../composables/useTheme.js';
 import { ArrowLeft, MessageCircleWarningIcon } from '@lucide/vue';
-import { useChatStore } from '../stores/chatStore.js';
+import { useConversationStore } from '../stores/conversationStore.js';
 import Button from '../components/ui/Button.vue';
 
 provideTheme();
 
 const page = usePage();
-const chatStore = useChatStore();
-const chatLists = computed(() => page.props.chats);
-const activeChatId = computed(() => page.props?.activeChatId || null);
+const conversationStore = useConversationStore();
+const conversations = computed(() => page.props.conversations);
+const activeChatId = computed(() => page.props.conversation?.id || null);
 
-watch(chatLists, (newChats) => {
-  if (newChats) {
-    chatStore.setChats(newChats);
+watch(conversations, (newConversation) => {
+  if (newConversation) {
+    conversationStore.setConversation(newConversation);
   }
 }, { immediate: true });
 
@@ -30,29 +30,43 @@ const handleSelectedChatId = (id) => {
 }
 
 const handleBackToLists = () => {
-  router.get('/chat');
+  router.get('/chats');
   currentView.value = 'lists';
   selectedChatId.value = null;
   selectedSearchUser.value = null;
 }
 
 const handleSelectedSearchedUser = (user) => {
-  router.get('/chat');
+  router.get('/chats');
   currentView.value = 'chat';
   selectedChatId.value = null;
   selectedSearchUser.value = user;
-  console.log(user.name)
 }
 
 provide('BackToListsHandaler', { handleBackToLists });
 
-onMounted(() => {
-  if (activeChatId) {
-    // console.log(activeChatId.value)
-    selectedChatId.value = activeChatId.value;
+watch(activeChatId, (id) => {
+  if (id) {
+    selectedChatId.value = id;
     currentView.value = 'chat';
   }
-})
+
+}, {immediate:true});
+
+const handleStartConversation = (otherUserId) => {
+
+  router.post('/chats', {
+    other_user_id: otherUserId
+  },
+    {
+      onSuccess: () => {
+        selectedSearchUser.value = null
+
+      }
+
+    }
+  );
+};
 
 </script>
 
@@ -64,7 +78,7 @@ onMounted(() => {
       currentView === 'lists' ? 'block' : 'hidden md:block',
       'w-full md:w-sm'
     ]">
-      <ChatLayoutSidebar :chats="chatStore.chatLists" :selected-chat-id="selectedChatId"
+      <ChatLayoutSidebar :conversations="conversationStore.conversations" :selected-chat-id="selectedChatId"
         @when-select-a-chat-list="handleSelectedChatId($event)"
         @when-select-a-searched-user="handleSelectedSearchedUser($event)" />
     </div>
@@ -72,7 +86,7 @@ onMounted(() => {
     <!-- Main Content -->
     <div v-if="selectedChatId" :class="[
       currentView === 'chat' ? 'block' : 'hidden md:block',
-      'flex-1',
+      'flex-1 overflow-hidden',
     ]">
       <slot />
     </div>
@@ -83,7 +97,7 @@ onMounted(() => {
       'flex-1 flex items-center justify-center',
     ]">
       <Button class="md:hidden fixed top-4 left-4" @click="handleBackToLists">
-        <ArrowLeft size="20"/>
+        <ArrowLeft size="20" />
       </Button>
       <div
         class="flex flex-col items-center text-center gap-5 rounded-2xl bg-white dark:bg-zinc-900 py-10 px-6 w-full max-w-sm transition-all duration-300">
@@ -101,7 +115,7 @@ onMounted(() => {
           <h2 class="text-zinc-900 dark:text-zinc-100 font-extrabold text-xl tracking-tight">
             {{ selectedSearchUser.name }}
           </h2>
-          <p class="text-xs text-zinc-400 dark:text-zinc-500">@{{selectedSearchUser.username}}</p>
+          <p class="text-xs text-zinc-400 dark:text-zinc-500">@{{ selectedSearchUser.username }}</p>
         </div>
 
         <p class="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed px-2">
@@ -110,7 +124,7 @@ onMounted(() => {
         </p>
 
         <div class="w-full mt-2">
-          <Button
+          <Button @click="handleStartConversation(selectedSearchUser.id)"
             class="w-full py-2.5 px-4 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl shadow-xs transition-colors duration-200">
             Start a conversation
           </Button>
