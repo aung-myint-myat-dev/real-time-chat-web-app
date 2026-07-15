@@ -40,7 +40,7 @@ class MessageFactory extends Factory
     /**
      * Set the user (sender) for this message.
      */
-    public function sentBy(Usere $user): static
+    public function sentBy(User $user): static
     {
         return $this->state(fn (array $attributes) => [
             'user_id' => $user->id,
