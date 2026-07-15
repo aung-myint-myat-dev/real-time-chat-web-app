@@ -14,6 +14,8 @@ class Conversation extends Model
     /** @use HasFactory<ConversationFactory> */
     use HasFactory;
 
+    protected $fillable = ['created_by', 'type'];
+
     /**
      * The user who created this conversation.
      */
@@ -29,6 +31,17 @@ class Conversation extends Model
     {
         return $this->hasMany(ConversationUser::class, 'conversation_id');
     }
+
+   public function users(): BelongsToMany
+{
+    return $this->belongsToMany(
+        User::class,
+        'conversation_users',
+        'conversation_id',
+        'user_id'
+    )->withTimestamps();
+}
+
 
     /**
      * Users who are members of this conversation (many-to-many via conversation_users).

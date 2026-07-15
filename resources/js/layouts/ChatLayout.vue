@@ -1,19 +1,28 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import ChatLayoutSidebar from '../components/app/ChatLayoutSidebar.vue';
-import { computed, provide, ref } from 'vue';
+import { computed, onMounted, provide, ref, watch } from 'vue';
 import { provideTheme } from '../composables/useTheme.js';
-import { MessageCircleWarningIcon } from '@lucide/vue';
+import { ArrowLeft, MessageCircleWarningIcon } from '@lucide/vue';
+import { useConversationStore } from '../stores/conversationStore.js';
+import Button from '../components/ui/Button.vue';
 
 provideTheme();
 
-defineProps({
-  chats: Array,
-  activeChatId: String,
-})
+const page = usePage();
+const conversationStore = useConversationStore();
+const conversations = computed(() => page.props.conversations);
+const activeChatId = computed(() => page.props.conversation?.id || null);
+
+watch(conversations, (newConversation) => {
+  if (newConversation) {
+    conversationStore.setConversation(newConversation);
+  }
+}, { immediate: true });
 
 const selectedChatId = ref(null);
 const currentView = ref('lists');
+const selectedSearchUser = ref(null);
 
 const handleSelectedChatId = (id) => {
   selectedChatId.value = id;
@@ -21,11 +30,43 @@ const handleSelectedChatId = (id) => {
 }
 
 const handleBackToLists = () => {
+  router.get('/chats');
   currentView.value = 'lists';
   selectedChatId.value = null;
+  selectedSearchUser.value = null;
+}
+
+const handleSelectedSearchedUser = (user) => {
+  router.get('/chats');
+  currentView.value = 'chat';
+  selectedChatId.value = null;
+  selectedSearchUser.value = user;
 }
 
 provide('BackToListsHandaler', { handleBackToLists });
+
+watch(activeChatId, (id) => {
+  if (id) {
+    selectedChatId.value = id;
+    currentView.value = 'chat';
+  }
+
+}, {immediate:true});
+
+const handleStartConversation = (otherUserId) => {
+
+  router.post('/chats', {
+    other_user_id: otherUserId
+  },
+    {
+      onSuccess: () => {
+        selectedSearchUser.value = null
+
+      }
+
+    }
+  );
+};
 
 </script>
 
@@ -34,31 +75,76 @@ provide('BackToListsHandaler', { handleBackToLists });
 
     <!-- Layout Sidebar -->
     <div :class="[
-      currentView === 'lists' ? 'block' : 'hidden sm:block',
-      'w-full sm:w-sm'
+      currentView === 'lists' ? 'block' : 'hidden md:block',
+      'w-full md:w-sm'
     ]">
-      <ChatLayoutSidebar :chats="chats" :active-chat-id="selectedChatId" @select-chat="handleSelectedChatId($event)" />
+      <ChatLayoutSidebar :conversations="conversationStore.conversations" :selected-chat-id="selectedChatId"
+        @when-select-a-chat-list="handleSelectedChatId($event)"
+        @when-select-a-searched-user="handleSelectedSearchedUser($event)" />
     </div>
 
     <!-- Main Content -->
     <div v-if="selectedChatId" :class="[
-      currentView === 'chat' ? 'block' : 'hidden sm:block',
-      'flex-1',
+      currentView === 'chat' ? 'block' : 'hidden md:block',
+      'flex-1 overflow-hidden',
     ]">
       <slot />
     </div>
 
+    <!-- Searched User -->
+    <div v-else-if="selectedSearchUser" :class="[
+      currentView === 'chat' ? 'block' : 'hidden md:block',
+      'flex-1 flex items-center justify-center',
+    ]">
+      <Button class="md:hidden fixed top-4 left-4" @click="handleBackToLists">
+        <ArrowLeft size="20" />
+      </Button>
+      <div
+        class="flex flex-col items-center text-center gap-5 rounded-2xl bg-white dark:bg-zinc-900 py-10 px-6 w-full max-w-sm transition-all duration-300">
+
+        <div class="relative group">
+          <div
+            class="size-16 shrink-0 bg-zinc-100 dark:bg-zinc-800 font-bold text-lg text-zinc-700 dark:text-zinc-300 rounded-full flex items-center justify-center border-2 border-zinc-200 dark:border-zinc-700 shadow-xs">
+            PF
+          </div>
+          <span
+            class="absolute bottom-0 right-0 size-3.5 bg-green-500 border-2 border-white dark:border-zinc-900 rounded-full shadow-sm"></span>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <h2 class="text-zinc-900 dark:text-zinc-100 font-extrabold text-xl tracking-tight">
+            {{ selectedSearchUser.name }}
+          </h2>
+          <p class="text-xs text-zinc-400 dark:text-zinc-500">@{{ selectedSearchUser.username }}</p>
+        </div>
+
+        <p class="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed px-2">
+          This is a really interesting way to start a conversation with
+          <span class="font-semibold text-zinc-800 dark:text-zinc-200">{{ selectedSearchUser.name }}</span>.
+        </p>
+
+        <div class="w-full mt-2">
+          <Button @click="handleStartConversation(selectedSearchUser.id)"
+            class="w-full py-2.5 px-4 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl shadow-xs transition-colors duration-200">
+            Start a conversation
+          </Button>
+        </div>
+      </div>
+    </div>
+
+    <!-- No chats display -->
     <div v-else :class="[
       'flex-1 items-center justify-center',
-      currentView === 'chat' ? 'flex' : 'hidden sm:flex'
+      currentView === 'chat' ? 'flex' : 'hidden md:flex'
     ]">
       <div class="flex flex-col justify-center items-center gap-2">
         <div class="h-14 w-14 text-white bg-brand-500 rounded-full flex items-center justify-center">
-          <MessageCircleWarningIcon/>
+          <MessageCircleWarningIcon />
         </div>
         <h2 class="font-bold text-gray-500">No messages yet
         </h2>
-        <p class="text-gray-500">Start a conversation with your friends and connect with them instantly.</p>
+        <p class="text-gray-500 w-full text-center">Start a conversation with your friends and connect with them
+          instantly.</p>
       </div>
     </div>
   </div>

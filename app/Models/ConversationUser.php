@@ -12,6 +12,7 @@ class ConversationUser extends Model
     /** @use HasFactory<ConversationUserFactory> */
     use HasFactory;
 
+    protected $fillable = ['conversation_id', 'user_id', 'role', 'joined_at', 'last_read_message_id', 'is_muted', 'is_pinned'];
     /**
      * The conversation this pivot record belongs to.
      */
