@@ -1,5 +1,5 @@
 <script setup>
-import { ArrowLeft } from "@lucide/vue";
+import { ArrowLeft, ArrowDown } from "@lucide/vue";
 import ChatLayout from "../layouts/ChatLayout.vue";
 import ChatMessage from "../components/app/ChatMessage.vue";
 import { ref, inject, onMounted, onUnmounted, computed, nextTick } from "vue";
@@ -45,12 +45,29 @@ const form = useForm({
 });
 
 const messagesContainer = ref(null);
+const isReceiveMessage = ref(false);
+const isAtBottom = ref(false);
+const showScrollButton = ref(false);
+let unReadMsgCount = ref(0);
+
+const handleScroll = () => {
+    const el = messagesContainer.value;
+
+    const threshold = 50;
+
+    isAtBottom.value =
+        el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+};
+
 const scrollToBottom = async () => {
     await nextTick();
 
     if (!messagesContainer.value) return;
 
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+
+    showScrollButton.value = false;
+    unReadMsgCount.value = 0;
 };
 
 const handleSendMessage = () => {
@@ -73,7 +90,13 @@ onMounted(() => {
         Echo.private(`chats.${props.conversation?.id}`)
             .listen(".message.sent", (e) => {
                 messages.value.push(e);
-                scrollToBottom();
+                unReadMsgCount.value++;
+
+                if (isAtBottom.value) {
+                    scrollToBottom();
+                } else {
+                    showScrollButton.value = true;
+                }
             })
             .listenForWhisper("typing", (response) => {
                 isOtherUserTyping.value = response.user_id === otherUser.id;
@@ -123,7 +146,12 @@ onUnmounted(() => {
                 </div>
                 <div>
                     <h2 class="font-semibold">{{ otherUser?.name }}</h2>
-                    <p v-if="isOtherUserTyping" class="text-[12px] text-white animate-pulse">{{ otherUser.name }} is typing....</p>
+                    <p
+                        v-if="isOtherUserTyping"
+                        class="text-[12px] text-white animate-pulse"
+                    >
+                        {{ otherUser.name }} is typing....
+                    </p>
                     <p class="text-xs text-gray-500">
                         {{ props.conversation?.time }}
                     </p>
@@ -132,12 +160,24 @@ onUnmounted(() => {
         </div>
 
         <!-- Messages: Fills available space and scrolls -->
-        <div ref="messagesContainer" class="flex-1 overflow-y-auto p-4">
+        <div
+            ref="messagesContainer"
+            class="flex-1 overflow-y-auto p-4 relative"
+            @scroll="handleScroll"
+        >
             <ChatMessage
                 v-for="message in messages"
                 :key="message.id"
                 :message="message"
             ></ChatMessage>
+            <button
+                v-if="showScrollButton"
+                @click="scrollToBottom"
+                class="size-10 rounded-full flex items-center justify-center bg-gray-500 fixed bottom-25 right-1/2"
+            >
+                <span class="w-5 h-5 z-10 text-sm rounded-full bg-brand-500 absolute -top-2 right-1/2 left-1/2 -translate-x-1/2">{{ unReadMsgCount }}</span>
+                <ArrowDown />
+            </button>
         </div>
 
         <!-- Input Form: Stays at the bottom -->
