@@ -29,7 +29,6 @@ watch(searchInput, (value) => {
     clearTimeout(timeout)
 
     if (value.length < 2) {
-        // router.get('/chat', {}, { preserveState: true, replace: true });
         return;
     }
 
@@ -45,9 +44,6 @@ watch(searchInput, (value) => {
         )
             .then((response) => searchResult.value = response.data)
             .catch((err) => console.log(err))
-        // const response = router.get('/users/search',
-        //         { q: value },
-        //         { preserveState: true, replace: true, preserveScroll: true });
 
     }, 300)
 
@@ -71,8 +67,6 @@ const links = [
 const isLinkActive = (href) => {
     return page.url.startsWith(href);
 };
-
-console.log(chats);
 
 </script>
 <template>

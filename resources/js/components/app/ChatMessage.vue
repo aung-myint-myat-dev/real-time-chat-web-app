@@ -7,14 +7,6 @@ const props = defineProps({
         type: Object,
         required: true
     },
-    // isMe: {
-    //     type: Boolean,
-    //     default: false
-    // },
-    // senderName: {
-    //     type: String,
-    //     default: ''
-    // }
 })
 
 const page = usePage();
@@ -23,7 +15,6 @@ const authUser = computed(()=> page.props.auth.user);
 const senderName = computed(() => props.message.user.name);
 const isMe = computed(() => authUser.value.id === props.message.user_id ?? false);
 
-// console.log(authUser.value.id, props.message.user_id);
 
 </script>
 
@@ -53,9 +44,5 @@ const isMe = computed(() => authUser.value.id === props.message.user_id ?? false
         </div>
 
     </div>
-    <!-- <div>
-        {{props.message.body }}
-        {{isMe}}
-</div> -->
 </template>
 

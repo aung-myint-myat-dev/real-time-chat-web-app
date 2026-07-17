@@ -32,13 +32,6 @@ class ChatController extends Controller
                 }
             ])
             ->get();
-        // $conversations = Conversation::where('created_by', Auth::id())->get()->map(fn ($query) {
-        //     $query
-        // });
-
-        // $conversations = Auth::user()->conversations();
-
-        // dd($conversations);
 
         return Inertia::render('Chat', [
             'conversations' => $conversations,
@@ -78,13 +71,11 @@ class ChatController extends Controller
         return Inertia::render('Chat', [
             'conversations' => $conversations,
             'conversation' => $conversation,
-            // 'otherUser' => $conversation->users->where('id', '!=', auth()->id())->first(),
         ]);
     }
 
     public function store(StoreConversationRequest $request)
     {
-        // dd($request->validated('other_user_id'));
         $user = auth()->user();
 
         $conversation = Conversation::create([
@@ -108,7 +99,6 @@ class ChatController extends Controller
             'is_muted' =>  false,
             'is_pinned' =>  false,
         ]);
-        // dd($conversation);
 
         Message::create([
             'conversation_id' => $conversation->id,
@@ -117,8 +107,6 @@ class ChatController extends Controller
         ]);
 
         return redirect()->route('chat.show', $conversation->id);
-
-        // return $this->show($conversation->id);
 
     }
 }

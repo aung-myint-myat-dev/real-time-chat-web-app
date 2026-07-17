@@ -14,14 +14,6 @@ class UserSearchController extends Controller
     {
         $search = $request->validated('q', '');
 
-        // $users = User::query()
-        //     ->select(['id', 'name', 'username', 'avatar'])
-        //     ->where('id', '!=', Auth::id())
-        //     ->where('username', 'like', "{$search}")
-        //     // ->with(['conversations'])
-        //     ->limit(20)
-        //     ->get();
-
         $currentUserId = auth()->id();
 
         $users = User::query()
@@ -48,13 +40,6 @@ class UserSearchController extends Controller
                     'conversation_id' => $conversation?->id,
                 ];
             });
-
-        // return Inertia::render('Chat', [
-        //     'searchUsers' => $users,
-        //     // 'filters' => [
-        //     //     'search' => $search 
-        //     // ]
-        // ]);
 
         return response()->json($users);
     }
