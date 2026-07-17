@@ -33,6 +33,9 @@ const otherUser = computed(() => {
     );
 });
 
+const isOtherUserTyping = ref(false);
+const isOtherUserTypingTimer = ref(null);
+
 const form = useForm({
     conversation_id: props.conversation?.id,
     user_id: authUser.value.id,
@@ -47,29 +50,42 @@ const scrollToBottom = async () => {
 
     if (!messagesContainer.value) return;
 
-    messagesContainer.value.scrollTop =
-        messagesContainer.value.scrollHeight;
+    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
 };
 
 const handleSendMessage = () => {
     form.post("/messages", {
         onSuccess: () => {
-            form.reset(),
-            scrollToBottom()
+            (form.reset(), scrollToBottom());
         },
+    });
+};
+
+const sendTypingEvent = () => {
+    Echo.private(`chats.${props.conversation?.id}`).whisper("typing", {
+        user_id: authUser.id,
     });
 };
 
 onMounted(() => {
     if (props.conversation) {
         scrollToBottom();
-        Echo.private(`chats.${props.conversation?.id}`).listen(
-            ".message.sent",
-            (e) => {
+        Echo.private(`chats.${props.conversation?.id}`)
+            .listen(".message.sent", (e) => {
                 messages.value.push(e);
                 scrollToBottom();
-            },
-        );
+            })
+            .listenForWhisper("typing", (response) => {
+                isOtherUserTyping.value = response.user_id === otherUser.id;
+
+                if (isOtherUserTypingTimer.value) {
+                    clearTimeout(isOtherUserTypingTimer.value);
+                }
+
+                isOtherUserTypingTimer.value = setTimeout(() => {
+                    isOtherUserTyping.value = false;
+                }, 1000);
+            });
     }
 });
 
@@ -107,6 +123,7 @@ onUnmounted(() => {
                 </div>
                 <div>
                     <h2 class="font-semibold">{{ otherUser?.name }}</h2>
+                    <p v-if="isOtherUserTyping" class="text-[12px] text-white animate-pulse">{{ otherUser.name }} is typing....</p>
                     <p class="text-xs text-gray-500">
                         {{ props.conversation?.time }}
                     </p>
@@ -124,7 +141,6 @@ onUnmounted(() => {
         </div>
 
         <!-- Input Form: Stays at the bottom -->
-        <!-- Input Form -->
         <div
             class="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shrink-0"
         >
@@ -141,6 +157,7 @@ onUnmounted(() => {
                         class="w-full resize-none rounded-2xl border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         @keydown.enter.exact.prevent="handleSendMessage"
                         @keydown.shift.enter.stop
+                        @keydown="sendTypingEvent"
                     ></textarea>
                 </div>
 
