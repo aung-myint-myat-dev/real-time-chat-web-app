@@ -6,17 +6,6 @@ import { computed, inject, onMounted, ref, watch } from 'vue';
 
 const page = usePage();
 
-// const props = defineProps({
-//     conversations: {
-//         type: Array,
-//         default: [],
-//     },
-//     selectedChatId: {
-//         type: [String, Number],
-//         default: null
-//     }
-// })
-
 const conversations = computed(() => page.props.conversations);
 const selectedChatId = computed(() => page.props.selectedChatId);
 
@@ -33,7 +22,6 @@ const searchUser = async (query) => {
 
     if (query.length > 2) {
         try {
-            // const username = query.substring(1);
             
             const response = await axios.get(
                 "/users/search",

@@ -12,9 +12,7 @@ const props = defineProps({
     },
 })
 
-// const { handleBackToLists } = inject('BackToListsHandaler')
 const { isDarkMode, toggleTheme } = useTheme();
-
 
 </script>
 <template>

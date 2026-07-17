@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 require __DIR__ . '/auth.php';
+require __DIR__ . '/channels.php';
 
 Route::middleware(['guest'])->get('/', function () {
     return Inertia::render('Welcome');
