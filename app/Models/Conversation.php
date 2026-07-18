@@ -32,15 +32,15 @@ class Conversation extends Model
         return $this->hasMany(ConversationUser::class, 'conversation_id');
     }
 
-   public function users(): BelongsToMany
-{
-    return $this->belongsToMany(
-        User::class,
-        'conversation_users',
-        'conversation_id',
-        'user_id'
-    )->withTimestamps();
-}
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'conversation_users',
+            'conversation_id',
+            'user_id'
+        )->withTimestamps();
+    }
 
 
     /**
