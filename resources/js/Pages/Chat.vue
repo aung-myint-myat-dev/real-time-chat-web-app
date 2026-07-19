@@ -87,6 +87,7 @@ const sendTypingEvent = () => {
 onMounted(() => {
     if (props.conversation) {
         scrollToBottom();
+        isAtBottom.value = true;
         Echo.private(`chats.${props.conversation?.id}`)
             .listen(".message.sent", (e) => {
                 messages.value.push(e);
