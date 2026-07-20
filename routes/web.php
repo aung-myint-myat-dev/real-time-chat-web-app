@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserSearchController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -27,8 +28,13 @@ Route::middleware(['auth'])
             return Inertia::render('Setting');
         });
 
-        Route::get('/profile', function () {
-            return Inertia::render('Profile');
+        Route::controller(ProfileController::class)->group(function () {
+            Route::get('profile', 'index')->name('profile.index');
+            Route::put('profile', 'update')->name('profile.update');
+            Route::delete('profile', 'delete')->name('profile.delete');
+            Route::put('profile/avatar', 'uploadProfileImage')->name('profile.avatar.upload');
+            Route::delete('profile/avatar', 'deleteProfileImage')->name('profile.avatar.delete');
+            Route::get('profile/{id}', 'show')->name('profile.show');
         });
 
         Route::get('/saved/messages', function () {
