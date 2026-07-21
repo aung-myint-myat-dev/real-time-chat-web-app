@@ -142,7 +142,7 @@ import { Camera, Image, Pencil, X } from '@lucide/vue';
 import Button from '../../components/ui/Button.vue';
 
 defineOptions({
-    layout: (props) => [AppLayout, { title: 'Profile' }]
+    layout: (props) => [AppLayout, { title: 'Profile', backUrl: "/chats" }]
 });
 
 const page = usePage();

@@ -3,7 +3,7 @@ import { createInertiaApp } from '@inertiajs/vue3'
 import { createPinia } from 'pinia'
 import "./echo";
 
-const pina = createPinia();
+const pinia = createPinia();
 
 createInertiaApp({
     resolve: name => {
@@ -13,7 +13,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(pina)
+            .use(pinia)
             .mount(el)
     },
 })
