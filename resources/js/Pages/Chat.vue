@@ -14,9 +14,9 @@ const props = defineProps({
     conversation: Object,
 });
 
-const { handleBackToLists } = inject("BackToListsHandaler");
-
 const page = usePage();
+
+const { handleBackToLists } = inject("BackToListsHandaler");
 
 const messages = ref([...(props.conversation?.messages ?? [])]);
 
@@ -176,7 +176,10 @@ onUnmounted(() => {
                 @click="scrollToBottom"
                 class="size-10 rounded-full flex items-center justify-center bg-gray-500 fixed bottom-25 right-1/2"
             >
-                <span class="w-5 h-5 z-10 text-sm rounded-full bg-brand-500 absolute -top-2 right-1/2 left-1/2 -translate-x-1/2">{{ unReadMsgCount }}</span>
+                <span
+                    class="w-5 h-5 z-10 text-sm rounded-full bg-brand-500 absolute -top-2 right-1/2 left-1/2 -translate-x-1/2"
+                    >{{ unReadMsgCount }}</span
+                >
                 <ArrowDown />
             </button>
         </div>

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Chat;
 
+use App\Events\Conversation\ConversationCreated;
 use App\Models\Conversation;
 use App\Models\ConversationUser;
 use App\Models\Message;
@@ -38,6 +39,10 @@ class StartConversationAction
             'user_id' => $user->id,
             'body' => 'Hi'
         ]);
+
+        broadcast(new ConversationCreated(
+            conversation: $conversation->load('users')
+        ))->toOthers();
 
         return $conversation;
     }

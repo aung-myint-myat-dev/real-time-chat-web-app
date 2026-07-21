@@ -10,11 +10,11 @@ class GetUserConversations
     public function execute(User $user)
     {
         return Conversation::query()
-            ->whereHas('users', function ($query) use($user) {
+            ->whereHas('users', function ($query) use ($user) {
                 $query->where('users.id', $user->id);
             })
             ->with([
-                'users' => function ($query) use($user) {
+                'users' => function ($query) use ($user) {
                     $query
                         ->where('users.id', '!=', $user->id)
                         ->select(
@@ -26,6 +26,7 @@ class GetUserConversations
                         );
                 }
             ])
+            ->latest()
             ->get();
     }
 }
