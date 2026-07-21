@@ -106,6 +106,11 @@ const getOtherUserName = (users) => {
     return otherUser ? otherUser.name : "Unknown User";
 };
 
+const getOtherUserAvatar = (users) => {
+    const otherUser = users.find((user) => user.id !== authUser.id);
+    return otherUser ? otherUser.avatar : null;
+};
+
 onMounted(() => {
     Echo.private(`users.${authUser.id}`).listen(
         ".conversation.created",
@@ -256,7 +261,7 @@ onUnmounted(() => {
                 >
                     <div class="relative size-11 shrink-0">
                         <img
-                            :src="conversation.avatar"
+                            :src="getOtherUserAvatar(conversation.users)"
                             class="size-full object-cover rounded-full border border-slate-200 dark:border-slate-700"
                         />
                         <span

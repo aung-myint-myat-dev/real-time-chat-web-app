@@ -130,10 +130,27 @@ const handleStartConversation = (otherUserId) => {
                     <div
                         class="size-16 shrink-0 bg-zinc-100 dark:bg-zinc-800 font-bold text-lg text-zinc-700 dark:text-zinc-300 rounded-full flex items-center justify-center border-2 border-zinc-200 dark:border-zinc-700 shadow-xs"
                     >
-                        PF
+                        <div class="h-58 flex items-center justify-center">
+                            <div
+                                v-if="selectedSearchUser.avatar"
+                                class="aspect-square size-25 rounded-full overflow-hidden"
+                            >
+                                <img
+                                    :src="selectedSearchUser.avatar"
+                                    :alt="selectedSearchUser.name + '-profile'"
+                                    class="w-full h-full object-cover"
+                                />
+                            </div>
+                            <div
+                                v-else
+                                class="size-45 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800 text-4xl font-bold flex items-center justify-center"
+                            >
+                                {{ pselectedSearchUser.name?.charAt(0) || "U" }}
+                            </div>
+                        </div>
                     </div>
                     <span
-                        class="absolute bottom-0 right-0 size-3.5 bg-green-500 border-2 border-white dark:border-zinc-900 rounded-full shadow-sm"
+                        class="absolute -bottom-2 -right-4 size-4 bg-green-500 border-2 border-white dark:border-zinc-900 rounded-full shadow-sm"
                     ></span>
                 </div>
 
