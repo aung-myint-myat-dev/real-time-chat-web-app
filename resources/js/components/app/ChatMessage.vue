@@ -57,7 +57,8 @@ const dateFormatter = (timestamp) => {
         <div
             class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 shrink-0 border border-transparent dark:border-slate-700/50"
         >
-            {{ senderName ? senderName.charAt(0).toUpperCase() : "U" }}
+            <img v-if="message.user.avatar" :src="message.user.avatar" class="rounded-full"/>
+            <span v-else class="rounded-full">{{ senderName ? senderName.charAt(0).toUpperCase() : "U" }}</span>
         </div>
 
         <div class="flex flex-col">

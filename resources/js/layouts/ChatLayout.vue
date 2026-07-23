@@ -1,12 +1,13 @@
 <script setup>
 import { Link, router, usePage } from "@inertiajs/vue3";
 import ChatLayoutSidebar from "../components/app/ChatLayoutSidebar.vue";
-import { computed, provide, ref, watch } from "vue";
+import { computed, provide, ref, watch, onMounted, onUnmounted } from "vue";
 import { storeToRefs } from "pinia";
 import { provideTheme } from "../composables/useTheme.js";
 import { ArrowLeft, MessageCircleWarningIcon } from "@lucide/vue";
 import { useConversationStore } from "../stores/conversationStore.js";
 import Button from "../components/ui/Button.vue";
+import { useOnlineUsersStore } from "../stores/onlineUsersStore.js";
 
 provideTheme();
 
@@ -25,12 +26,12 @@ watch(
     },
 );
 
-const activeChatId = computed(() => page.props.conversation?.id || null);
+// const activeChatId = computed(() => page.props.conversation?.id || null);
 
 const { conversations } = storeToRefs(conversationStore);
 
-const selectedChatId = ref(null);
-const currentView = ref("lists");
+const selectedChatId = ref(page.props.conversation?.id);
+const currentView = ref('lists');
 const selectedSearchUser = ref(null);
 
 const handleSelectedChatId = (id) => {
@@ -55,7 +56,7 @@ const handleSelectedSearchedUser = (user) => {
 provide("BackToListsHandaler", { handleBackToLists });
 
 watch(
-    activeChatId,
+    selectedChatId,
     (id) => {
         if (id) {
             selectedChatId.value = id;
@@ -78,6 +79,40 @@ const handleStartConversation = (otherUserId) => {
         },
     );
 };
+
+const onlineUsersStore = useOnlineUsersStore();
+
+const handlePopState = () => {
+    currentView.value = "lists";
+    selectedChatId.value = null;
+    selectedSearchUser.value = null;
+};
+
+onMounted(() => {
+
+    window.addEventListener("popstate", handlePopState);
+
+    Echo.join("online")
+        .here((users) => {
+            users.forEach((user) => {
+                onlineUsersStore.addOnlineUserId(user.id);
+            });
+        })
+        .joining((user) => {
+            onlineUsersStore.addOnlineUserId(user.id);
+        })
+        .leaving((user) => {
+            onlineUsersStore.removeOnlineUserId(user.id);
+        })
+        .error((e) => {
+            console.log(e);
+        });
+});
+
+onUnmounted(() => {
+    window.removeEventListener("popstate", handlePopState);
+});
+
 </script>
 
 <template>
@@ -90,8 +125,8 @@ const handleStartConversation = (otherUserId) => {
             ]"
         >
             <ChatLayoutSidebar
-                :conversations="conversations"
-                :selectedChatId="activeChatId"
+                :conversations="conversationStore.conversations"
+                :selectedChatId="selectedChatId"
                 @when-select-a-chat-list="handleSelectedChatId($event)"
                 @when-select-a-searched-user="
                     handleSelectedSearchedUser($event)
