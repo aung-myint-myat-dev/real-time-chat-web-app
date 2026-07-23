@@ -12,6 +12,7 @@ import {
 import axios from "axios";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useConversationStore } from "../../stores/conversationStore.js";
+import { useOnlineUsersStore } from "../../stores/onlineUsersStore.js";
 import { formatConversationTime } from "../../utils/formatConversationTime.js";
 
 const page = usePage();
@@ -19,10 +20,11 @@ const authUser = page.props.auth.user;
 
 const props = defineProps({
     conversations: Array,
-    selectedChatId: String || Number
+    selectedChatId: Number || String,
 });
 
 const conversationStore = useConversationStore();
+const onlineUsersStore = useOnlineUsersStore();
 
 const selectedChatId = computed(() => page.props.selectedChatId);
 
@@ -113,6 +115,13 @@ const getOtherUserAvatar = (users) => {
     return otherUser ? otherUser.avatar : null;
 };
 
+const checkIsOnline = (users) => {
+
+    const otherUser = users.find((user) => user.id !== authUser.id);
+
+    return onlineUsersStore.isOnline(otherUser?.id);
+}
+
 onMounted(() => {
     Echo.private(`users.${authUser.id}`)
         .listen(".conversation.created", (e) => {
@@ -121,10 +130,13 @@ onMounted(() => {
         .listen(".conversation.updated", (e) => {
             conversationStore.updateConversation(e.conversation);
         });
+
+    
 });
 
 onUnmounted(() => {
     Echo.leave(`users.${authUser.id}`);
+    Echo.leave('online');
 });
 </script>
 <template>
@@ -255,7 +267,7 @@ onUnmounted(() => {
                     :key="conversation.id"
                     :href="`/chats/${conversation.id}`"
                     :class="[
-                        selectedChatId == conversation.id
+                        props.selectedChatId === conversation.id
                             ? 'bg-blue-500/20'
                             : '',
                     ]"
@@ -267,7 +279,7 @@ onUnmounted(() => {
                             :src="getOtherUserAvatar(conversation.users)"
                             class="size-full object-cover rounded-full border border-slate-200 dark:border-slate-700"
                         />
-                        <span
+                        <span v-if="checkIsOnline(conversation.users)"
                             class="absolute bottom-0 right-0 size-3 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"
                         ></span>
                     </div>
@@ -309,7 +321,10 @@ onUnmounted(() => {
                                         : 'text-slate-500',
                                 ]"
                             >
-                                {{ conversation.last_message || "No messages yet" }}
+                                {{
+                                    conversation.last_message ||
+                                    "No messages yet"
+                                }}
                             </p>
 
                             <span

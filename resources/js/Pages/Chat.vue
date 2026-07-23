@@ -4,6 +4,7 @@ import ChatLayout from "../layouts/ChatLayout.vue";
 import ChatMessage from "../components/app/ChatMessage.vue";
 import { ref, inject, onMounted, onUnmounted, computed, nextTick } from "vue";
 import { Link, usePage, useForm, router } from "@inertiajs/vue3";
+import { useOnlineUsersStore } from "../stores/onlineUsersStore.js";
 
 defineOptions({
     layout: ChatLayout,
@@ -101,6 +102,8 @@ const sendTypingEvent = () => {
     });
 };
 
+const onlineUsersStore = useOnlineUsersStore();
+
 onMounted(() => {
     if (props.conversation) {
         scrollToBottom();
@@ -153,7 +156,7 @@ onUnmounted(() => {
                         :src="otherUser.avatar"
                         class="size-full object-cover rounded-full border border-slate-200 dark:border-slate-700"
                     />
-                    <span
+                    <span v-if="onlineUsersStore.isOnline(otherUser.id)"
                         class="absolute bottom-0 right-0 size-3 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"
                     ></span>
                 </div>

@@ -13,7 +13,7 @@ class ConversationSidebarFormatter
     {
         $conversation->loadMissing([
             'users' => fn ($query) => $query
-                ->where('users.id', '!=', $user->id)
+                // ->where('users.id', '!=', $user->id)
                 ->select(
                     'users.id',
                     'users.name',

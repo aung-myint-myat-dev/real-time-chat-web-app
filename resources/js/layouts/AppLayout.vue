@@ -2,8 +2,9 @@
 import { Link, usePage } from '@inertiajs/vue3'
 import { provideTheme } from '../composables/useTheme'
 import { ArrowLeft } from '@lucide/vue';
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import Toast from '../components/ui/Toast.vue';
+import { useOnlineUsersStore } from "../stores/onlineUsersStore.js";
 provideTheme();
 
 defineProps({
@@ -45,6 +46,27 @@ watch(() => page.flash, (newFlash) => {
 const goBack = () => {
     window.history.back()
 }
+
+const onlineUsersStore = useOnlineUsersStore();
+
+onMounted(() => {
+    Echo.join("online")
+        .here((users) => {
+            users.forEach((user) => {
+                onlineUsersStore.addOnlineUserId(user.id);
+            });
+        })
+        .joining((user) => {
+            onlineUsersStore.addOnlineUserId(user.id);
+        })
+        .leaving((user) => {
+            onlineUsersStore.removeOnlineUserId(user.id);
+        })
+        .error((e) => {
+            console.log(e);
+        });
+});
+
 </script>
 
 <template>
