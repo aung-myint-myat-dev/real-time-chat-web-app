@@ -1,7 +1,8 @@
 <script setup>
 import { Link, router, usePage } from "@inertiajs/vue3";
 import ChatLayoutSidebar from "../components/app/ChatLayoutSidebar.vue";
-import { computed, onMounted, provide, ref, watch } from "vue";
+import { computed, provide, ref, watch } from "vue";
+import { storeToRefs } from "pinia";
 import { provideTheme } from "../composables/useTheme.js";
 import { ArrowLeft, MessageCircleWarningIcon } from "@lucide/vue";
 import { useConversationStore } from "../stores/conversationStore.js";
@@ -26,7 +27,7 @@ watch(
 
 const activeChatId = computed(() => page.props.conversation?.id || null);
 
-const conversations = conversationStore.conversations;
+const { conversations } = storeToRefs(conversationStore);
 
 const selectedChatId = ref(null);
 const currentView = ref("lists");
@@ -90,7 +91,7 @@ const handleStartConversation = (otherUserId) => {
         >
             <ChatLayoutSidebar
                 :conversations="conversations"
-                :selectedChatId="selectedChatId"
+                :selectedChatId="activeChatId"
                 @when-select-a-chat-list="handleSelectedChatId($event)"
                 @when-select-a-searched-user="
                     handleSelectedSearchedUser($event)

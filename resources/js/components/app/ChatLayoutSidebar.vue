@@ -10,14 +10,16 @@ import {
     X,
 } from "@lucide/vue";
 import axios from "axios";
-import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useConversationStore } from "../../stores/conversationStore.js";
+import { formatConversationTime } from "../../utils/formatConversationTime.js";
 
 const page = usePage();
 const authUser = page.props.auth.user;
 
 const props = defineProps({
     conversations: Array,
+    selectedChatId: String || Number
 });
 
 const conversationStore = useConversationStore();
@@ -112,12 +114,13 @@ const getOtherUserAvatar = (users) => {
 };
 
 onMounted(() => {
-    Echo.private(`users.${authUser.id}`).listen(
-        ".conversation.created",
-        (e) => {
+    Echo.private(`users.${authUser.id}`)
+        .listen(".conversation.created", (e) => {
             conversationStore.addConversation(e.conversation);
-        },
-    );
+        })
+        .listen(".conversation.updated", (e) => {
+            conversationStore.updateConversation(e.conversation);
+        });
 });
 
 onUnmounted(() => {
@@ -274,7 +277,7 @@ onUnmounted(() => {
                             <h3
                                 :class="[
                                     'text-sm truncate',
-                                    conversation.length > 0
+                                    conversation.unread_count > 0
                                         ? 'font-bold text-slate-900 dark:text-white'
                                         : 'font-semibold text-slate-800 dark:text-slate-200',
                                 ]"
@@ -284,10 +287,17 @@ onUnmounted(() => {
                                         ? conversation.name
                                         : getOtherUserName(conversation.users)
                                 }}
-                                <!-- {{ conversation.users.find((user) => { user.id !== authUser.id }) }} -->
-                                <!-- {{ conversation.user.name }} -->
                             </h3>
-                            <!-- <span class="text-[10px] text-slate-400 whitespace-nowrap">{{ conversation.time }}</span> -->
+                            <span
+                                v-if="conversation.last_message_at"
+                                class="text-[10px] text-slate-400 whitespace-nowrap"
+                            >
+                                {{
+                                    formatConversationTime(
+                                        conversation.last_message_at,
+                                    )
+                                }}
+                            </span>
                         </div>
 
                         <div class="flex items-center justify-between gap-2">
@@ -299,14 +309,14 @@ onUnmounted(() => {
                                         : 'text-slate-500',
                                 ]"
                             >
-                                <!-- {{ conversation.last_message }} -->
+                                {{ conversation.last_message || "No messages yet" }}
                             </p>
 
                             <span
                                 v-if="conversation.unread_count > 0"
                                 class="bg-blue-500 text-white text-[10px] font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center animate-pulse"
                             >
-                                <!-- {{ conversation.unread_count }} -->
+                                {{ conversation.unread_count }}
                             </span>
                         </div>
                     </div>

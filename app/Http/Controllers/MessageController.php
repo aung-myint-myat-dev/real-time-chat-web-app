@@ -14,6 +14,7 @@ class MessageController extends Controller
     ) {
         $action->execute($request->validated());
 
-        return back();
+        // return redirect()->route('chat.show', $request->validated('conversation_id'));
+        return redirect()->back(); 
     }
 }

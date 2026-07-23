@@ -19,6 +19,7 @@ Route::middleware(['auth'])
         Route::get('/chats', [ChatController::class, 'index'])->name('chatboard');
         Route::post('/chats', [ChatController::class, 'store'])->name('chat.store');
         Route::get('/chats/{conversation}', [ChatController::class, 'show'])->name('chat.show');
+        Route::post('/chats/{conversation}/read', [ChatController::class, 'markAsRead'])->name('chat.read');
 
         Route::post('/messages', [MessageController::class, 'store'])->name('message.store');
 
