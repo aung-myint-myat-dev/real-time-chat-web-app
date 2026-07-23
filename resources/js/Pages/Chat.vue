@@ -3,8 +3,7 @@ import { ArrowLeft, ArrowDown } from "@lucide/vue";
 import ChatLayout from "../layouts/ChatLayout.vue";
 import ChatMessage from "../components/app/ChatMessage.vue";
 import { ref, inject, onMounted, onUnmounted, computed, nextTick } from "vue";
-import { Link, usePage, useForm } from "@inertiajs/vue3";
-import { useEcho } from "@laravel/echo-vue";
+import { Link, usePage, useForm, router } from "@inertiajs/vue3";
 
 defineOptions({
     layout: ChatLayout,
@@ -70,10 +69,28 @@ const scrollToBottom = async () => {
     unReadMsgCount.value = 0;
 };
 
+const markConversationAsRead = (messageId = null) => {
+    if (!props.conversation?.id) {
+        return;
+    }
+
+    router.post(
+        `/chats/${props.conversation.id}/read`,
+        { message_id: messageId },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            only: [],
+        },
+    );
+};
+
 const handleSendMessage = () => {
     form.post("/messages", {
-        onSuccess: () => {
-            (form.reset(), scrollToBottom());
+        preserveScroll: true,
+        onFinish: () => {
+            form.reset("body");
+            scrollToBottom();
         },
     });
 };
@@ -91,11 +108,12 @@ onMounted(() => {
         Echo.private(`chats.${props.conversation?.id}`)
             .listen(".message.sent", (e) => {
                 messages.value.push(e);
-                unReadMsgCount.value++;
 
                 if (isAtBottom.value) {
                     scrollToBottom();
+                    markConversationAsRead(e.id);
                 } else {
+                    unReadMsgCount.value++;
                     showScrollButton.value = true;
                 }
             })

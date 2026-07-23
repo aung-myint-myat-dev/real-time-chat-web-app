@@ -2,13 +2,16 @@
 
 namespace App\Actions\Chat;
 
+use App\Actions\Chat\BroadcastConversationUpdateAction;
 use App\Events\Conversation\ConversationCreated;
 use App\Models\Conversation;
-use App\Models\ConversationUser;
 use App\Models\Message;
 
 class StartConversationAction
 {
+    public function __construct(
+        private BroadcastConversationUpdateAction $broadcastConversationUpdate,
+    ) {}
 
     public function execute(array $data): Conversation
     {
@@ -37,12 +40,16 @@ class StartConversationAction
         Message::create([
             'conversation_id' => $conversation->id,
             'user_id' => $user->id,
-            'body' => 'Hi'
+            'body' => 'Hi',
         ]);
 
+        $conversation->load('users');
+
         broadcast(new ConversationCreated(
-            conversation: $conversation->load('users')
+            conversation: $conversation,
         ))->toOthers();
+
+        $this->broadcastConversationUpdate->execute($conversation);
 
         return $conversation;
     }

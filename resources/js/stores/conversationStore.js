@@ -5,7 +5,7 @@ export const useConversationStore = defineStore("conversations", () => {
     const conversations = ref([]);
 
     const setConversations = (items) => {
-        conversations.value = items;
+        conversations.value = items ?? [];
     };
 
     const addConversation = (conversation) => {
@@ -18,9 +18,29 @@ export const useConversationStore = defineStore("conversations", () => {
         }
     };
 
+    const updateConversation = (updated) => {
+        const index = conversations.value.findIndex(
+            (c) => c.id === updated.id,
+        );
+
+        if (index === -1) {
+            conversations.value.unshift(updated);
+            return;
+        }
+
+        const merged = {
+            ...conversations.value[index],
+            ...updated,
+        };
+
+        conversations.value.splice(index, 1);
+        conversations.value.unshift(merged);
+    };
+
     return {
         conversations,
         setConversations,
         addConversation,
+        updateConversation,
     };
 });
