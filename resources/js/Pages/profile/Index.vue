@@ -1,138 +1,3 @@
-<!-- <script setup>
-import { router, useForm, usePage } from '@inertiajs/vue3';
-import AppLayout from '../../layouts/AppLayout.vue';
-import { ref } from 'vue';
-
-defineOptions({
-    layout: (props) => [AppLayout, { title: 'Profile' }]
-});
-
-const page = usePage();
-const props = defineProps({
-    user: {
-        type: Object,
-        default: null,
-    }
-})
-
-/**
- * Updating User Info
- */
-const updateForm = useForm({
-    name: props.user?.name || '',
-    username: props.user?.username || '',
-})
-const updateUser = () => {
-    updateForm.put('/profile');
-}
-
-/**
- * Deleting User Account
- */
-const deleteForm = useForm({
-    password: '',
-})
-const deleteUser = () => {
-    deleteForm.delete('/profile');
-}
-
-/**
- * Uploading User Avatar
- */
-const avatarInput = ref(null)
-const previewProfileAvatar = ref(null)
-const uploadAvatarForm = useForm({
-    avatar: null,
-})
-const handleProfileAvatarFileChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-        if (previewProfileAvatar.value) {
-            URL.revokeObjectURL(previewProfileAvatar.value);
-        }
-        previewProfileAvatar.value = URL.createObjectURL(file);
-        uploadAvatarForm.avatar = file
-    }
-    console.log(uploadAvatarForm.avatar)
-}
-const handleCancelUploadProfileAvatar = () => {
-    if (previewProfileAvatar.value) {
-        URL.revokeObjectURL(previewProfileAvatar.value)
-        previewProfileAvatar.value = null
-    }
-    uploadAvatarForm.avatar = null
-    if (avatarInput.value) {
-        avatarInput.value.value = ''
-    }
-}
-const uploadUserAvatar = () => {
-    router.post(
-        '/profile/avatar',
-        {
-            _method: 'put',
-            avatar: uploadAvatarForm.avatar,
-        },
-        {
-            onSuccess: () => {
-                if (previewProfileAvatar.value) {
-                    URL.revokeObjectURL(previewProfileAvatar.value)
-                    previewProfileAvatar.value = null
-                }
-                uploadAvatarForm.reset();
-                if (avatarInput.value) {
-                    avatarInput.value.value = ''
-                }
-            }
-        }
-    )
-}
-const deleteUserAvatar = () => {
-    router.delete('/profile/avatar')
-}
-
-</script>
-<template>
-    <div v-if="props.user.avatar">Avater exits
-        <div>
-            <img :src="props.user.avatar" alt="">
-        </div>
-
-        <div>
-            <button @click="deleteUserAvatar">Delete Avatar</button>
-        </div>
-    </div>
-
-    <div v-else>Avater doesn't exit</div>
-    <form @submit.prevent="updateUser">
-        <input type="text" v-model="updateForm.name">
-        <span v-if="updateForm.errors.name">{{ updateForm.errors.name }}</span>
-        <input type="text" v-model="updateForm.username">
-        <span v-if="updateForm.errors.username">{{ updateForm.errors.username }}</span>
-        <button type="submit">Update <span v-if="updateForm.processing">Processing</span></button>
-    </form>
-    <div v-if="page.flash">{{ page.flash.message }}</div>
-
-    <br>
-
-    <form @submit.prevent="deleteUser">
-        <input type="text" v-model="deleteForm.password">
-        <span v-if="deleteForm.errors.password">{{ deleteForm.errors.password }}</span>
-        <button type="submit">Delete Account <span v-if="deleteForm.processing">Processing</span></button>
-    </form>
-
-    <div>
-        <form @submit.prevent="uploadUserAvatar">
-            <input ref="avatarInput" type="file" @change="handleProfileAvatarFileChange">
-            <button type="submit">Upload <span v-if="uploadAvatarForm.processing">Processing</span></button>
-            <button @click="handleCancelUploadProfileAvatar">Cancel</button>
-        </form>
-    </div>
-
-    <div v-if="previewProfileAvatar" class="border p-6 rounded-md">
-        <img :src="previewProfileAvatar" class="size-40 rounded-md">
-    </div>
-</template> -->
-
 <script setup>
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AppLayout from '../../layouts/AppLayout.vue';
@@ -242,6 +107,17 @@ const deleteUserAvatar = () => {
         })
     }
 }
+
+const handleLogout = () => {
+
+    router.post('/logout', {}, {
+        onBefore: () => {
+            navigator.sendBeacon('/users/update-last-seen-at');
+        }
+    });
+
+}
+
 </script>
 
 <template>
@@ -379,8 +255,9 @@ const deleteUserAvatar = () => {
                     <h2 class="text-md font-semibold text-red-500">Logout Account</h2>
                     <p class="text-xs text-red-600 my-2">Once your account is logout, you must be re login again.</p>
                 </div>
-                <Button variant="danger">
-                    <Link as="button" href="/logout" method="POST">Logout</Link>
+                <Button @click="handleLogout" variant="danger">
+                    Logout
+                    <!-- <Link as="button" href="/logout" method="POST">Logout</Link> -->
                 </Button>
             </div>
         </div>

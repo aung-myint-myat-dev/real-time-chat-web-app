@@ -17,3 +17,9 @@ createInertiaApp({
             .mount(el)
     },
 })
+
+window.addEventListener("beforeunload", () => {
+    navigator.sendBeacon(
+        "/users/update-last-seen-at"
+    );
+});

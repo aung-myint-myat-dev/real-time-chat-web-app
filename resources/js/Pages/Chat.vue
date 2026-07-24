@@ -174,8 +174,8 @@ onUnmounted(() => {
                     >
                         {{ otherUser.name }} is typing....
                     </p>
-                    <p class="text-xs text-gray-500">
-                        {{ props.conversation?.time }}
+                    <p v-if="!onlineUsersStore.isOnline(otherUser.id)" class="text-xs text-gray-500">
+                        {{ otherUser.last_seen_at }}
                     </p>
                 </div>
             </div>

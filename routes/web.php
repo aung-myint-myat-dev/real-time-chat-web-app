@@ -3,6 +3,7 @@
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserSearchController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -20,6 +21,8 @@ Route::middleware(['auth'])
         Route::post('/chats', [ChatController::class, 'store'])->name('chat.store');
         Route::get('/chats/{conversation}', [ChatController::class, 'show'])->name('chat.show');
         Route::post('/chats/{conversation}/read', [ChatController::class, 'markAsRead'])->name('chat.read');
+
+        Route::post('/users/update-last-seen-at',  [UserController::class, 'updateLastSeenAt']);
 
         Route::post('/messages', [MessageController::class, 'store'])->name('message.store');
 
