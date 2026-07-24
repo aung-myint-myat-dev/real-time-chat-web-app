@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 #[Fillable(['name', 'username', 'email', 'password', 'avatar', 'last_seen_at'])]
@@ -32,21 +34,22 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'last_seen_at' => 'datetime',
         ];
     }
 
     /**
      * Conversations created by this user.
      */
-  public function conversations(): BelongsToMany
-{
-    return $this->belongsToMany(
-        Conversation::class,
-        'conversation_users',
-        'user_id',
-        'conversation_id'
-    )->withTimestamps();
-}
+    public function conversations(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Conversation::class,
+            'conversation_users',
+            'user_id',
+            'conversation_id'
+        )->withTimestamps();
+    }
 
     /**
      * Pivot records for conversations this user is a member of.
@@ -80,7 +83,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function avatar(): Attribute
     {
         return Attribute::make(
-            get: fn (?string $value) => $value ? Storage::url($value) : null,
+            get: fn(?string $value) => $value ? Storage::url($value) : null,
+        );
+    }
+
+    public function lastSeenAt(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value
+                ? Carbon::parse($value)->diffForHumans()
+                : null,
         );
     }
 }
