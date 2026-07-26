@@ -1,9 +1,0 @@
-<script setup>
-import AppLayout from '../layouts/AppLayout.vue';
-
-defineOptions({
-    layout: (props) => [AppLayout, { title: "Settings"}],
-})
-</script>
-
-<template>Setting</template>

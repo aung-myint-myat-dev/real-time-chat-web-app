@@ -8,7 +8,8 @@ import { ArrowLeft, MessageCircleWarningIcon } from "@lucide/vue";
 import { useConversationStore } from "../stores/conversationStore.js";
 import Button from "../components/ui/Button.vue";
 import { useOnlineUsersStore } from "../stores/onlineUsersStore.js";
-
+import { useNotificationStore } from "../stores/notificationStore.js";
+import NotificationContainer from "../components/notifications/NotificationContainer.vue";
 provideTheme();
 
 const page = usePage();
@@ -81,6 +82,7 @@ const handleStartConversation = (otherUserId) => {
 };
 
 const onlineUsersStore = useOnlineUsersStore();
+const notificationStore = useNotificationStore();
 
 const handlePopState = () => {
     currentView.value = "lists";
@@ -106,9 +108,19 @@ onMounted(() => {
         .error((e) => {
             console.log(e);
         });
+
+    Echo.private(`users.${page.props.auth.user.id}`)
+        .listen(".message.sent", (e) => {
+            if (e.user_id !== page.props.auth.user.id && selectedChatId.value !== e.conversation_id) {
+                notificationStore.add(e);
+            }
+        });
+
 });
 
+
 onUnmounted(() => {
+    Echo.leave(`users.${page.props.auth.user.id}`);
     window.removeEventListener("popstate", handlePopState);
 });
 
@@ -116,65 +128,46 @@ onUnmounted(() => {
 
 <template>
     <div class="h-screen font-brand flex bg-background text-text-color">
+
+        <NotificationContainer :notifications="notificationStore.notifications"  @close="notificationStore.remove"/>
+
         <!-- Layout Sidebar -->
-        <div
-            :class="[
-                currentView === 'lists' ? 'block' : 'hidden md:block',
-                'w-full md:w-sm',
-            ]"
-        >
-            <ChatLayoutSidebar
-                :conversations="conversationStore.conversations"
-                :selectedChatId="selectedChatId"
-                @when-select-a-chat-list="handleSelectedChatId($event)"
-                @when-select-a-searched-user="
+        <div :class="[
+            currentView === 'lists' ? 'block' : 'hidden md:block',
+            'w-full md:w-sm',
+        ]">
+            <ChatLayoutSidebar :conversations="conversationStore.conversations" :selectedChatId="selectedChatId"
+                @when-select-a-chat-list="handleSelectedChatId($event)" @when-select-a-searched-user="
                     handleSelectedSearchedUser($event)
-                "
-            />
+                    " />
         </div>
 
         <!-- Main Content -->
-        <div
-            v-if="selectedChatId"
-            :class="[
-                currentView === 'chat' ? 'block' : 'hidden md:block',
-                'flex-1 overflow-hidden',
-            ]"
-        >
+        <div v-if="selectedChatId" :class="[
+            currentView === 'chat' ? 'block' : 'hidden md:block',
+            'flex-1 overflow-hidden',
+        ]">
             <slot />
         </div>
 
         <!-- Searched User -->
-        <div
-            v-else-if="selectedSearchUser"
-            :class="[
-                currentView === 'chat' ? 'block' : 'hidden md:block',
-                'flex-1 flex items-center justify-center',
-            ]"
-        >
-            <Button
-                class="md:hidden fixed top-4 left-4"
-                @click="handleBackToLists"
-            >
+        <div v-else-if="selectedSearchUser" :class="[
+            currentView === 'chat' ? 'block' : 'hidden md:block',
+            'flex-1 flex items-center justify-center',
+        ]">
+            <Button class="md:hidden fixed top-4 left-4" @click="handleBackToLists">
                 <ArrowLeft size="20" />
             </Button>
             <div
-                class="flex flex-col items-center text-center gap-5 rounded-2xl bg-white dark:bg-zinc-900 py-10 px-6 w-full max-w-sm transition-all duration-300"
-            >
+                class="flex flex-col items-center text-center gap-5 rounded-2xl bg-white dark:bg-zinc-900 py-10 px-6 w-full max-w-sm transition-all duration-300">
                 <div class="relative group">
                     <div
-                        class="size-16 shrink-0 bg-zinc-100 dark:bg-zinc-800 font-bold text-lg text-zinc-700 dark:text-zinc-300 rounded-full flex items-center justify-center border-2 border-zinc-200 dark:border-zinc-700 shadow-xs"
-                    >
+                        class="size-16 shrink-0 bg-zinc-100 dark:bg-zinc-800 font-bold text-lg text-zinc-700 dark:text-zinc-300 rounded-full flex items-center justify-center border-2 border-zinc-200 dark:border-zinc-700 shadow-xs">
                         <div class="h-58 flex items-center justify-center">
-                            <div
-                                v-if="selectedSearchUser.avatar"
-                                class="aspect-square size-25 rounded-full overflow-hidden"
-                            >
-                                <img
-                                    :src="selectedSearchUser.avatar"
-                                    :alt="selectedSearchUser.name + '-profile'"
-                                    class="w-full h-full object-cover"
-                                />
+                            <div v-if="selectedSearchUser.avatar"
+                                class="aspect-square size-25 rounded-full overflow-hidden">
+                                <img :src="selectedSearchUser.avatar" :alt="selectedSearchUser.name + '-profile'"
+                                    class="w-full h-full object-cover" />
                             </div>
                             <div
                                 v-else
@@ -185,14 +178,11 @@ onUnmounted(() => {
                         </div>
                     </div>
                     <span
-                        class="absolute -bottom-2 -right-4 size-4 bg-green-500 border-2 border-white dark:border-zinc-900 rounded-full shadow-sm"
-                    ></span>
+                        class="absolute -bottom-2 -right-4 size-4 bg-green-500 border-2 border-white dark:border-zinc-900 rounded-full shadow-sm"></span>
                 </div>
 
                 <div class="flex flex-col gap-1">
-                    <h2
-                        class="text-zinc-900 dark:text-zinc-100 font-extrabold text-xl tracking-tight"
-                    >
+                    <h2 class="text-zinc-900 dark:text-zinc-100 font-extrabold text-xl tracking-tight">
                         {{ selectedSearchUser.name }}
                     </h2>
                     <p class="text-xs text-zinc-400 dark:text-zinc-500">
@@ -200,22 +190,15 @@ onUnmounted(() => {
                     </p>
                 </div>
 
-                <p
-                    class="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed px-2"
-                >
+                <p class="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed px-2">
                     This is a really interesting way to start a conversation
                     with
-                    <span
-                        class="font-semibold text-zinc-800 dark:text-zinc-200"
-                        >{{ selectedSearchUser.name }}</span
-                    >.
+                    <span class="font-semibold text-zinc-800 dark:text-zinc-200">{{ selectedSearchUser.name }}</span>.
                 </p>
 
                 <div class="w-full mt-2">
-                    <Button
-                        @click="handleStartConversation(selectedSearchUser.id)"
-                        class="w-full py-2.5 px-4 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl shadow-xs transition-colors duration-200"
-                    >
+                    <Button @click="handleStartConversation(selectedSearchUser.id)"
+                        class="w-full py-2.5 px-4 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl shadow-xs transition-colors duration-200">
                         Start a conversation
                     </Button>
                 </div>
@@ -223,17 +206,12 @@ onUnmounted(() => {
         </div>
 
         <!-- No chats display -->
-        <div
-            v-else
-            :class="[
-                'flex-1 items-center justify-center',
-                currentView === 'chat' ? 'flex' : 'hidden md:flex',
-            ]"
-        >
+        <div v-else :class="[
+            'flex-1 items-center justify-center',
+            currentView === 'chat' ? 'flex' : 'hidden md:flex',
+        ]">
             <div class="flex flex-col justify-center items-center gap-2">
-                <div
-                    class="h-14 w-14 text-white bg-brand-500 rounded-full flex items-center justify-center"
-                >
+                <div class="h-14 w-14 text-white bg-brand-500 rounded-full flex items-center justify-center">
                     <MessageCircleWarningIcon />
                 </div>
                 <h2 class="font-bold text-gray-500">No messages yet</h2>
