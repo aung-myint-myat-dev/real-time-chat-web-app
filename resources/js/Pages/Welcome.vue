@@ -1,10 +1,9 @@
 <template>
   <GuestLayout>
-     <HeroSection id="home"/>
-    <TechStackSection id="tech"/>
-    <FeatureSection id="features"/>
-    <ContactSection id="contact"/>
-    <FooterSection/>
+    <HeroSection id="home" />
+    <TechStackSection id="tech" />
+    <FeatureSection id="features" />
+    <FooterSection />
   </GuestLayout>
 </template>
 

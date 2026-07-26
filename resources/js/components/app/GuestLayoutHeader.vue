@@ -6,7 +6,7 @@
             <a href="#home"
                 class="font-black text-xl tracking-wider text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <span class="p-1.5 rounded-lg bg-brand-500 text-white text-sm">💬</span>
-                CHECKCHAT
+                CheckChat
             </a>
 
             <!-- Navigation Links -->
@@ -14,7 +14,6 @@
                 <a href="#home" class="hover:text-brand-500 transition-colors">Home</a>
                 <a href="#tech" class="hover:text-brand-500 transition-colors">Tech Stack</a>
                 <a href="#features" class="hover:text-brand-500 transition-colors">Features</a>
-                <a href="#contact" class="hover:text-brand-500 transition-colors">Contact</a>
             </nav>
 
             <!-- Auth Action Links -->
@@ -22,7 +21,7 @@
                 <Link href="/auth/login"
                     class="text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-brand-500 transition-colors">
                     Login
-                </Link>
+            </Link>
                 <Link href="/auth/register"
                     class="px-4 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold transition-all shadow-md shadow-brand-500/20">
                     Register

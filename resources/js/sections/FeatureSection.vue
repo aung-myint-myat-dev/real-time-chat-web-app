@@ -22,8 +22,6 @@ const features = [
     { icon: '💬', title: 'Real-Time Messaging', description: 'Instant message delivery via WebSocket channels with zero latencies.' },
     { icon: '👥', title: 'Presence Status', description: 'Track active channels and group participant presence automatically.' },
     { icon: '🟢', title: 'Online Indicator', description: 'See real-time user availability status with low-overhead heartbeat checks.' },
-    { icon: '📷', title: 'Image Sharing', description: 'Upload and preview images inline within your chat threads seamlessly.' },
-    { icon: '📁', title: 'File Upload', description: 'Share documents and multimedia directly inside direct or group messages.' },
     { icon: '🔔', title: 'Notifications', description: 'In-app and broadcast event notifications for incoming direct messages.' },
     { icon: '🔒', title: 'Authentication', description: 'Secured login and register flow powered by Laravel authentication services.' },
     { icon: '📱', title: 'Responsive Design', description: 'Optimized touch-friendly UI adapting seamlessly across mobile, tablet, and desktop.' },

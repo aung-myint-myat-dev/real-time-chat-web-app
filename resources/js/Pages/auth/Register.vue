@@ -18,7 +18,7 @@
 
                 <!-- Full Name -->
                 <div class="space-y-1.5">
-                    <label class="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                    <label class="block text-xs font-semibold tracking-wider text-slate-600 dark:text-slate-300">
                         Full Name
                     </label>
                     <input v-model="form.name" type="text" required placeholder="Alex Mercer"
@@ -30,7 +30,7 @@
 
                 <!-- Username -->
                 <div class="space-y-1.5">
-                    <label class="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                    <label class="block text-xs font-semibold tracking-wider text-slate-600 dark:text-slate-300">
                         Username
                     </label>
                     <input v-model="form.username" type="text" required placeholder="alex_mercer"
@@ -42,7 +42,7 @@
 
                 <!-- Email -->
                 <div class="space-y-1.5">
-                    <label class="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                    <label class="block text-xs font-semibold tracking-wider text-slate-600 dark:text-slate-300">
                         Email Address
                     </label>
                     <input v-model="form.email" type="email" required placeholder="name@example.com"
@@ -54,7 +54,7 @@
 
                 <!-- Password -->
                 <div class="space-y-1.5">
-                    <label class="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                    <label class="block text-xs font-semibold tracking-wider text-slate-600 dark:text-slate-300">
                         Password
                     </label>
                     <input v-model="form.password" type="password" required placeholder="••••••••"
@@ -66,7 +66,7 @@
 
                 <!-- Confirm Password -->
                 <div class="space-y-1.5">
-                    <label class="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                    <label class="block text-xs font-semibold tracking-wider text-slate-600 dark:text-slate-300">
                         Confirm Password
                     </label>
                     <input v-model="form.password_confirmation" type="password" required placeholder="••••••••"
@@ -119,7 +119,7 @@ const form = useForm({
 })
 
 const submit = () => {
-    form.post(route('register'), {
+    form.post('/auth/register', {
         onFinish: () => form.reset('password', 'password_confirmation'),
     })
 }

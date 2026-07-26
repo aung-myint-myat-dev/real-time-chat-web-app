@@ -56,7 +56,7 @@ const handleSelectedSearchedUser = (user) => {
 provide("BackToListsHandaler", { handleBackToLists });
 
 watch(
-    selectedChatId,
+    () => page.props?.conversation?.id,
     (id) => {
         if (id) {
             selectedChatId.value = id;
@@ -89,7 +89,6 @@ const handlePopState = () => {
 };
 
 onMounted(() => {
-
     window.addEventListener("popstate", handlePopState);
 
     Echo.join("online")
@@ -181,7 +180,7 @@ onUnmounted(() => {
                                 v-else
                                 class="size-45 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800 text-4xl font-bold flex items-center justify-center"
                             >
-                                {{ pselectedSearchUser.name?.charAt(0) || "U" }}
+                                {{ selectedSearchUser.name?.charAt(0) || "U" }}
                             </div>
                         </div>
                     </div>

@@ -2,8 +2,9 @@
   <div class="p-4 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg flex items-center justify-between gap-4">
     <!-- Left: Avatar & Name -->
     <div class="flex items-center gap-3">
-      <div class="text-2xl p-2 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
-        {{ avatar }}
+      <div class="rounded-full overflow-hidden size-18 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+        <!-- {{ avatar }} -->
+        <img :src="avatar" :alt="name" class="w-full h-full object-cover">
       </div>
       <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">
         {{ name }}

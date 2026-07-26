@@ -4,7 +4,7 @@
             <div class="text-center max-w-3xl mx-auto mb-16 space-y-6">
                 <span
                     class="px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide bg-brand-500/10 text-brand-500 border border-brand-500/20 inline-block animate-pulse">
-                    Hello 👋
+                    Hi! This is
                 </span>
                 <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
                     CHECKCHAT
@@ -17,13 +17,9 @@
                     and Laravel Echo demonstrating clean architecture and seamless responsiveness.
                 </p>
                 <div class="flex flex-wrap justify-center gap-4 pt-2">
-                    <a href="#contact"
-                        class="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium transition-all shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 hover:-translate-y-0.5">
-                        Get Started
-                    </a>
-                    <a href="https://github.com" target="_blank"
-                        class="px-6 py-3 rounded-xl bg-white/80 dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-medium transition-all hover:-translate-y-0.5">
-                        GitHub
+                    <Link class="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium transition-all shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 hover:-translate-y-0.5" href="/auth/register">Get Started</Link>
+                    <a class="px-6 py-3 rounded-xl border border-border-color font-medium transition-all shadow-lg hover:-translate-y-0.5" href="https://github.com/aung-myint-myat-dev/real-time-chat-web-app">
+                        Project Repo
                     </a>
                 </div>
             </div>
@@ -31,8 +27,8 @@
             <!-- Developer Cards Side-by-Side -->
             <p class="text-center text-xs font-semibold uppercase tracking-wider text-slate-400 mb-6">Developed By</p>
             <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
-                <DeveloperCard avatar="👨‍💻" name="Aung Myint Myat" github="https://github.com" />
-                <DeveloperCard avatar="👨‍🎨" name="Frontend Partner" github="https://github.com" />
+                <DeveloperCard avatar="/images/amm-luffy.jpeg" name="Aung Myint Myat" github="https://github.com/aung-myint-myat-dev" />
+                <DeveloperCard avatar="/images/mad-luffy.jpeg" name="Thura Aung" github="https://github.com/MadThura" />
             </div>
 
             <!-- Tech Stack Pills -->
@@ -50,6 +46,7 @@
 </template>
 
 <script setup>
+import { Link } from '@inertiajs/vue3';
 import DeveloperCard from '../components/app/DeveloperCard.vue';
 
 const techStack = [

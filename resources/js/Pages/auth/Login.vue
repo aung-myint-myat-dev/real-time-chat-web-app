@@ -24,11 +24,11 @@
 
         <!-- Email or Username Input -->
         <div class="space-y-1.5">
-          <label class="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-            Email or Username
+          <label class="block text-xs font-semibold tracking-wider text-slate-600 dark:text-slate-300">
+            Email
           </label>
           <input 
-            v-model="form.login" 
+            v-model="form.email" 
             type="text" 
             required 
             autofocus
@@ -43,7 +43,7 @@
         <!-- Password Input -->
         <div class="space-y-1.5">
           <div class="flex items-center justify-between">
-            <label class="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+            <label class="block text-xs font-semibold tracking-wider text-slate-600 dark:text-slate-300">
               Password
             </label>
             <Link 
@@ -126,13 +126,13 @@ defineProps({
 })
 
 const form = useForm({
-  login: '',
+  email: '',
   password: '',
   remember: false,
 })
 
 const submit = () => {
-  form.post(route('login'), {
+  form.post('/auth/login', {
     onFinish: () => form.reset('password'),
   })
 }

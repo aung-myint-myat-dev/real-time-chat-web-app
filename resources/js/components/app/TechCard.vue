@@ -5,9 +5,10 @@
             <h3
                 class="text-xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-brand-500 transition-colors">
                 {{ name }}</h3>
-            <span
+            <!-- <span
                 class="text-2xl p-2 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">{{
-                icon }}</span>
+                icon }}</span> -->
+                <img :src="svg" alt="logo" class="size-12">
         </div>
         <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">{{ description }}</p>
 
@@ -25,6 +26,7 @@
 defineProps({
     name: { type: String, required: true },
     icon: { type: String, required: true },
+    svg: { type: String, required: false },
     description: { type: String, required: true },
     features: { type: Array, required: true }
 })

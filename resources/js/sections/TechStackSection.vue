@@ -23,32 +23,37 @@ const technologies = [
     {
         name: 'Laravel',
         icon: '🔴',
+        svg: '/logos/Laravel-Logo.wine.svg',
         description: 'Robust backend framework driving application logic, web sockets broadcasting, and state synchronization.',
-        features: ['Authentication', 'Broadcasting', 'Queues', 'REST API']
+        features: ['Authentication', 'Broadcasting']
     },
     {
         name: 'Vue.js 3',
         icon: '🟢',
+        svg: '/logos/Vue.js-Logo.wine.svg',
         description: 'Progressive JavaScript framework delivering responsive reactive UI states and real-time interface elements.',
-        features: ['Composition API', 'Reactive State', 'Component Driven', 'Fast Virtual DOM']
-    },
-    {
-        name: 'Inertia.js',
-        icon: '🟣',
-        description: 'Monolithic single-page architecture eliminating complex client-side route handlers or API layers.',
-        features: ['SPA experience', 'Server-driven Routing', 'Shared State', 'Zero Build Overhead']
+        features: ['Composition API', 'Reactive State']
     },
     {
         name: 'Laravel Echo & Pusher',
         icon: '⚡',
+        svg: '/logos/Laravel-Logo.wine.svg',
         description: 'Scalable WebSocket connection hub handling real-time push events and continuous bidirectional messaging.',
-        features: ['WebSockets', 'Presence Channels', 'Event Listening', 'Encrypted Streams']
+        features: ['WebSockets', 'Presence Channels', 'Event Listening']
     },
     {
         name: 'TailwindCSS',
         icon: '🎨',
+        svg: '/logos/tailwind-svgrepo-com.svg',
         description: 'Utility-first CSS solution enabling sleek responsive custom layouts, fluid dark-mode, and animations.',
-        features: ['Utility First', 'Dark Mode Native', 'Responsive Grid', 'Clean Footprint']
-    }
+        features: ['Utility First', 'Dark Mode Support', 'Responsive Chat Layout']
+    },
+    {
+        name: 'Inertia.js',
+        icon: '🟣',
+        svg: '/logos/inertiajs-plain.svg',
+        description: 'Monolithic single-page architecture eliminating complex client-side route handlers or API layers.',
+        features: ['SPA experience', 'Server-driven Routing']
+    },
 ]
 </script>
