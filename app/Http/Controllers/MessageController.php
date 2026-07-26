@@ -12,9 +12,7 @@ class MessageController extends Controller
         StoreMessageRequest $request,
         SendMessageAction $action
     ) {
-        $action->execute($request->validated());
-
-        // return redirect()->route('chat.show', $request->validated('conversation_id'));
-        return redirect()->back(); 
+        $message = $action->execute($request->validated());
+        return $message; 
     }
 }

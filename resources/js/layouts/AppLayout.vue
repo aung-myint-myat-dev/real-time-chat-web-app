@@ -2,9 +2,13 @@
 import { Link, usePage } from '@inertiajs/vue3'
 import { provideTheme } from '../composables/useTheme'
 import { ArrowLeft } from '@lucide/vue';
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import Toast from '../components/ui/Toast.vue';
 import { useOnlineUsersStore } from "../stores/onlineUsersStore.js";
+import NotificationContainer from '../components/notifications/NotificationContainer.vue';
+import { useNotificationStore } from '../stores/notificationStore.js';
+import NotificationItem from '../components/notifications/NotificationItem.vue';
+import { useNotificationSound } from '../composables/useSound.js';
 provideTheme();
 
 defineProps({
@@ -24,6 +28,9 @@ const toast = ref({
     message: '',
     type: 'success',
 })
+
+const { playSound } = useNotificationSound();
+const notificationStore = useNotificationStore();
 
 watch(() => page.flash, (newFlash) => {
     if (newFlash?.message) {
@@ -65,14 +72,30 @@ onMounted(() => {
         .error((e) => {
             console.log(e);
         });
+
+    Echo.private(`users.${page.props.auth.user.id}`)
+        .listen(".message.sent", (e) => {
+            if (e.user_id !== page.props.auth.user.id) {
+                playSound();
+                notificationStore.add(e);
+            }
+        });
 });
+
+onUnmounted(() => {
+    Echo.leave(`users.${page.props.auth.user.id}`);
+})
 
 </script>
 
 <template>
     <div class="min-h-screen bg-background flex flex-col text-text-color">
+        <div class="fixed top-5 left-1/2 -translate-x-1/2 w-full max-w-md z-55 px-4">
+            <Toast :show="toast.show" :message="toast.message" :type="toast.type"/>
+        </div>
+        <NotificationContainer :notifications="notificationStore.notifications" @close="notificationStore.remove" />
         <header
-            class="sticky top-0 z-50 bg-background border-b border-border-color h-16  flex items-center justify-between px-4 sm:px-8">
+            class="sticky top-0 z-40 bg-background border-b border-border-color h-16  flex items-center justify-between px-4 sm:px-8">
 
             <div class="flex-1">
                 <Link v-if="backUrl" :href="backUrl"
@@ -95,7 +118,5 @@ onMounted(() => {
         <main class="flex-1 p-4 max-w-7xl w-full mx-auto">
             <slot />
         </main>
-
-        <Toast v-model:show="toast.show" :message="toast.message" :type="toast.type"/>
     </div>
 </template>
