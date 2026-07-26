@@ -58,6 +58,6 @@ class ChatController extends Controller
             request()->integer('message_id') ?: null,
         );
 
-        return redirect()->back();
+        return true;
     }
 }

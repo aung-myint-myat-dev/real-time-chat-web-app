@@ -18,8 +18,10 @@ createInertiaApp({
     },
 })
 
-window.addEventListener("beforeunload", () => {
-    navigator.sendBeacon(
-        "/users/update-last-seen-at"
-    );
-});
+if(typeof window !== 'undefined') {
+    window.addEventListener("beforeunload", () => {
+        navigator.sendBeacon(
+            "/users/update-last-seen-at"
+        );
+    });
+}

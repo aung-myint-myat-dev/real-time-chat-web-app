@@ -10,10 +10,12 @@ import Button from "../components/ui/Button.vue";
 import { useOnlineUsersStore } from "../stores/onlineUsersStore.js";
 import { useNotificationStore } from "../stores/notificationStore.js";
 import NotificationContainer from "../components/notifications/NotificationContainer.vue";
+import { useNotificationSound } from "../composables/useSound.js";
 provideTheme();
 
 const page = usePage();
 const conversationStore = useConversationStore();
+const { playSound } = useNotificationSound();
 
 conversationStore.setConversations(page.props.conversations);
 
@@ -26,8 +28,6 @@ watch(
         immediate: true,
     },
 );
-
-// const activeChatId = computed(() => page.props.conversation?.id || null);
 
 const { conversations } = storeToRefs(conversationStore);
 
@@ -91,7 +91,9 @@ const handlePopState = () => {
 };
 
 onMounted(() => {
-    window.addEventListener("popstate", handlePopState);
+    if(typeof window !== 'undefined') {
+        window.addEventListener("popstate", handlePopState);
+    }
 
     Echo.join("online")
         .here((users) => {
@@ -112,6 +114,7 @@ onMounted(() => {
     Echo.private(`users.${page.props.auth.user.id}`)
         .listen(".message.sent", (e) => {
             if (e.user_id !== page.props.auth.user.id && selectedChatId.value !== e.conversation_id) {
+                playSound();
                 notificationStore.add(e);
             }
         });
@@ -121,7 +124,10 @@ onMounted(() => {
 
 onUnmounted(() => {
     Echo.leave(`users.${page.props.auth.user.id}`);
-    window.removeEventListener("popstate", handlePopState);
+
+    if(typeof window !== 'undefined') {
+        window.removeEventListener("popstate", handlePopState);
+    }
 });
 
 </script>
@@ -153,7 +159,7 @@ onUnmounted(() => {
         <!-- Searched User -->
         <div v-else-if="selectedSearchUser" :class="[
             currentView === 'chat' ? 'block' : 'hidden md:block',
-            'flex-1 flex items-center justify-center',
+            'flex-1 flex items-center justify-center px-4',
         ]">
             <Button class="md:hidden fixed top-4 left-4" @click="handleBackToLists">
                 <ArrowLeft size="20" />
@@ -171,7 +177,7 @@ onUnmounted(() => {
                             </div>
                             <div
                                 v-else
-                                class="size-45 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800 text-4xl font-bold flex items-center justify-center"
+                                class="size-25 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800 text-4xl font-bold flex items-center justify-center"
                             >
                                 {{ selectedSearchUser.name?.charAt(0) || "U" }}
                             </div>
