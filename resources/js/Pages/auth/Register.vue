@@ -1,77 +1,113 @@
 <template>
-    <GuestLayout>
+    <GuestLayout :is-authenticating="true">
         <div
-            class="w-full max-w-md bg-white dark:bg-slate-800/80 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800/50 p-8 transition-all">
+            class="w-full max-w-md bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 transition-all duration-300 hover:border-slate-300 dark:hover:border-slate-700">
+
+            <!-- Card Header -->
             <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Create your account</h2>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Get started with CheckChat today</p>
+                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    Create your account
+                </h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    Get started with <span class="font-semibold text-brand-500">CheckChat</span> today
+                </p>
             </div>
 
+            <!-- Registration Form -->
             <form @submit.prevent="submit" class="space-y-4">
 
-                <!-- Name Input -->
-                <div class="space-y-2">
-                    <label class="text-sm block font-medium text-slate-700 dark:text-slate-300">Full Name</label>
+                <!-- Full Name -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold tracking-wider text-slate-600 dark:text-slate-300">
+                        Full Name
+                    </label>
                     <input v-model="form.name" type="text" required placeholder="Alex Mercer"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-hidden transition-all" />
-                    <div v-if="form.errors.name" class="text-xs text-rose-500 mt-1 font-medium">{{ form.errors.name }}
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all duration-200" />
+                    <div v-if="form.errors.name" class="text-xs text-rose-500 font-medium pt-0.5">
+                        {{ form.errors.name }}
                     </div>
                 </div>
 
-                <!-- Username Input -->
-                <div class="space-y-2">
-                    <label class="text-sm block font-medium text-slate-700 dark:text-slate-300">Username</label>
+                <!-- Username -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold tracking-wider text-slate-600 dark:text-slate-300">
+                        Username
+                    </label>
                     <input v-model="form.username" type="text" required placeholder="alex_mercer"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-hidden transition-all" />
-                    <div v-if="form.errors.username" class="text-xs text-rose-500 mt-1 font-medium">{{ form.errors.username }}
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all duration-200" />
+                    <div v-if="form.errors.username" class="text-xs text-rose-500 font-medium pt-0.5">
+                        {{ form.errors.username }}
                     </div>
                 </div>
 
-                <!-- Email Input -->
-                <div class="space-y-1">
-                    <label class="text-sm block font-medium text-slate-700 dark:text-slate-300">Email Address</label>
+                <!-- Email -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold tracking-wider text-slate-600 dark:text-slate-300">
+                        Email Address
+                    </label>
                     <input v-model="form.email" type="email" required placeholder="name@example.com"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-hidden transition-all" />
-                    <div v-if="form.errors.email" class="text-xs text-rose-500 mt-1 font-medium">{{ form.errors.email }}
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all duration-200" />
+                    <div v-if="form.errors.email" class="text-xs text-rose-500 font-medium pt-0.5">
+                        {{ form.errors.email }}
                     </div>
                 </div>
 
-                <!-- Password Input -->
-                <div class="space-y-1">
-                    <label class="text-sm block font-medium text-slate-700 dark:text-slate-300">Password</label>
+                <!-- Password -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold tracking-wider text-slate-600 dark:text-slate-300">
+                        Password
+                    </label>
                     <input v-model="form.password" type="password" required placeholder="••••••••"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-hidden transition-all" />
-                    <div v-if="form.errors.password" class="text-xs text-rose-500 mt-1 font-medium">{{
-                        form.errors.password }}</div>
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all duration-200" />
+                    <div v-if="form.errors.password" class="text-xs text-rose-500 font-medium pt-0.5">
+                        {{ form.errors.password }}
+                    </div>
                 </div>
 
-                <!-- Password Confirmation Input -->
-                <div class="space-y-1">
-                    <label class="text-sm block font-medium text-slate-700 dark:text-slate-300">Confirm Password</label>
+                <!-- Confirm Password -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold tracking-wider text-slate-600 dark:text-slate-300">
+                        Confirm Password
+                    </label>
                     <input v-model="form.password_confirmation" type="password" required placeholder="••••••••"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-hidden transition-all" />
-                    <div v-if="form.errors.password_confirmation" class="text-xs text-rose-500 mt-1 font-medium">{{
-                        form.errors.password_confirmation }}</div>
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all duration-200" />
+                    <div v-if="form.errors.password_confirmation" class="text-xs text-rose-500 font-medium pt-0.5">
+                        {{ form.errors.password_confirmation }}
+                    </div>
                 </div>
 
-                <!-- Register Button -->
+                <!-- Submit Button -->
                 <button type="submit" :disabled="form.processing"
-                    class="w-full py-2.5 mt-2 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white font-semibold transition-all shadow-md shadow-brand-500/10">
-                    {{ form.processing ? 'Registering...' : 'Register Account' }}
+                    class="w-full py-3 mt-4 rounded-xl bg-brand-500 hover:bg-brand-600 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold transition-all shadow-lg shadow-brand-500/25 hover:shadow-brand-500/35">
+                    <span v-if="form.processing" class="flex items-center justify-center gap-2">
+                        <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        Registering...
+                    </span>
+                    <span v-else>Register Account</span>
                 </button>
             </form>
 
-            <!-- Login link -->
-            <p class="mt-6 text-sm text-center text-slate-500 dark:text-slate-400">
-                Already have an account? <Link href="/auth/login" class="text-brand-500 font-medium hover:underline">Log in
+            <!-- Switch to Login Link -->
+            <p class="mt-6 text-xs text-center text-slate-500 dark:text-slate-400">
+                Already have an account?
+                <Link href="/auth/login"
+                    class="text-brand-500 font-semibold hover:underline hover:text-brand-600 transition-colors">
+                    Log in
                 </Link>
             </p>
+
         </div>
     </GuestLayout>
 </template>
 
 <script setup>
-import GuestLayout from '@/layouts/GuestLayout.vue'
+import GuestLayout from '../../layouts/GuestLayout.vue'
 import { Link, useForm } from '@inertiajs/vue3'
 
 const form = useForm({
