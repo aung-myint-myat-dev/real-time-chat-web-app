@@ -28,10 +28,6 @@ Route::middleware(['auth'])
 
         Route::get('/users/search', [UserSearchController::class, 'index']);
 
-        Route::get('/settings', function () {
-            return Inertia::render('Setting');
-        });
-
         Route::controller(ProfileController::class)->group(function () {
             Route::get('profile', 'index')->name('profile.index');
             Route::put('profile', 'update')->name('profile.update');
@@ -41,7 +37,4 @@ Route::middleware(['auth'])
             Route::get('profile/{id}', 'show')->name('profile.show');
         });
 
-        Route::get('/saved/messages', function () {
-            return Inertia::render('SavedMessages');
-        });
     });

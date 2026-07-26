@@ -3,6 +3,7 @@
 namespace App\Events\Message;
 
 use App\Models\Message;
+use ArrayAccess;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -19,18 +20,26 @@ class MessageSent implements ShouldBroadcastNow
     /**
      * Create a new event instance.
      */
-    public function __construct(public Message $message) {
-        $this->message->load('user');
+    public function __construct(public Message $message)
+    {
+        $this->message->load(['user', 'conversation']);
     }
 
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return  Channel
+     * @return  array
      */
-    public function broadcastOn(): Channel
+    public function broadcastOn(): array
     {
-        return new PrivateChannel('chats.' . $this->message->conversation_id);
+        $otherUserId = $this->message->conversation->users
+            ->firstWhere('id', '!=', auth()->id())
+            ->id;
+
+        return [
+            new PrivateChannel('chats.' . $this->message->conversation_id),
+            new PrivateChannel('users.' . $otherUserId)
+        ];
     }
 
     public function broadcastAs()
