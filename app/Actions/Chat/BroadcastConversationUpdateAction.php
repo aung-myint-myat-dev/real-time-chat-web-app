@@ -20,7 +20,7 @@ class BroadcastConversationUpdateAction
             broadcast(new ConversationUpdated(
                 userId: $member->id,
                 conversation: $this->formatter->format($conversation, $member),
-            ));
+            ))->toOthers();
         }
     }
 }

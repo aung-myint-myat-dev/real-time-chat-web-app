@@ -4,6 +4,7 @@ namespace App\Actions\Chat;
 
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\MessageRead;
 use App\Models\User;
 
 class MarkConversationAsReadAction
@@ -14,6 +15,9 @@ class MarkConversationAsReadAction
 
     public function execute(Conversation $conversation, User $user, ?int $messageId = null): void
     {
+        if(!$messageId) {
+            return;
+        }
         $messageId ??= Message::query()
             ->where('conversation_id', $conversation->id)
             ->latest('id')
