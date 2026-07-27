@@ -1,7 +1,7 @@
 <script setup>
 import { usePage } from '@inertiajs/vue3';
 import ConversationUserItem from './ConversationUserItem.vue';
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 
 const page = usePage();
 const props = defineProps({
@@ -21,7 +21,7 @@ const props = defineProps({
 
 const authUser = computed(() => page.props.auth.user || null);
 const otherUser = (users) => {
-    return users.find((user) => user.id !== authUser.id ?? null);
+    return users.find((user) => user.id !== authUser.value.id ?? null);
 }
 </script>
 

@@ -24,9 +24,6 @@ const props = defineProps({
 })
 
 const authUser = computed(() => page.props.auth.user);
-const getOtherUser = (users) => {
-    return users.find((user) => user.id !== authUser.value.id ?? null);
-}
 const onlineUsersStore = useOnlineUsersStore();
 </script>
 
