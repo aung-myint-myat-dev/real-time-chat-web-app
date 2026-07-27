@@ -55,6 +55,7 @@ const handleSelectedSearchedUser = (user) => {
 };
 
 provide("BackToListsHandaler", { handleBackToLists });
+provide("HaldleSelectedChatId", { handleSelectedChatId });
 
 watch(
     () => page.props?.conversation?.id,
