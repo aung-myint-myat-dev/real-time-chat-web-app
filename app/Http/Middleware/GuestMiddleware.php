@@ -20,7 +20,7 @@ class GuestMiddleware
         $islogged = Auth::check();
 
         if($islogged) {
-            return redirect()->route('chatboard');
+            return redirect()->route('chats.chatboard');
         }
 
         return $next($request);

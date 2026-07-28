@@ -285,7 +285,7 @@ onUnmounted(() => {
         <!-- Messages: Scroll area -->
         <div class="flex-1 min-h-0 relative overflow-hidden">
 
-            <div ref="messagesContainer" class="h-full border overflow-y-auto p-4" @scroll="handleScroll">
+            <div ref="messagesContainer" class="h-full overflow-y-auto p-4" @scroll="handleScroll">
 
                 <ChatMessage v-for="message in messages" :key="message.id" :message="message" />
 

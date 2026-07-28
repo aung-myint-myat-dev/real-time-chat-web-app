@@ -16,29 +16,31 @@ Route::middleware(['guest'])->get('/', function () {
 })->name('welcome');
 
 Route::middleware(['auth'])
-->group(function () {
-    Route::get('/chats', [ChatController::class, 'index'])->name('chatboard');
-    Route::post('/chats', [ChatController::class, 'store'])->name('chats.store');
-    Route::get('/chats/{conversation}', [ChatController::class, 'show'])->name('chats.show');
-    Route::post('/chats/{conversation}/read', [ChatController::class, 'markAsRead'])->name('chats.read');
-    
-    Route::post('/users/update-last-seen-at',  [UserController::class, 'updateLastSeenAt']);
-    
-    Route::get('/chats/{conversation}/messages', [MessageController::class, 'index'])->name('message.index');
+    ->group(function () {
+
+        Route::prefix('/chats')
+            ->name('chats.')
+            ->controller(ChatController::class)
+            ->group(function () {
+                Route::get('/', 'index')->name('chatboard');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{conversation}', 'show')->name('show');
+                Route::post('/{conversation}/read', 'markAsRead')->name('read');
+            });
+
+        Route::get('/chats/{conversation}/messages', [MessageController::class, 'index'])->name('message.index');
         Route::post('/messages', [MessageController::class, 'store'])->name('message.store');
 
         Route::get('/users/search', [UserSearchController::class, 'index']);
 
-        Route::controller(ProfileController::class)->group(function () {
-            Route::get('profile', 'index')->name('profile.index');
-            Route::put('profile', 'update')->name('profile.update');
-            Route::delete('profile', 'delete')->name('profile.delete');
-            Route::put('profile/avatar', 'uploadProfileImage')->name('profile.avatar.upload');
-            Route::delete('profile/avatar', 'deleteProfileImage')->name('profile.avatar.delete');
-            Route::get('profile/{id}', 'show')->name('profile.show');
+        Route::prefix('/profile')->name('profile.')->controller(ProfileController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::put('/', 'update')->name('update');
+            Route::delete('/', 'delete')->name('delete');
+            Route::put('/avatar', 'uploadProfileImage')->name('avatar.upload');
+            Route::delete('/avatar', 'deleteProfileImage')->name('avatar.delete');
+            Route::get('/{id}', 'show')->name('show');
         });
 
         Route::post('/users/update-last-seen-at',  [UserController::class, 'updateLastSeenAt']);
-        Route::post('/messages', [MessageController::class, 'store'])->name('message.store');
-        Route::get('/users/search', [UserSearchController::class, 'index']);
     });

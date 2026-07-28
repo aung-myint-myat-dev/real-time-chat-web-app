@@ -42,7 +42,7 @@ class ChatController extends Controller
     ) {
         $conversation = $action->execute($request->validated());
 
-        return redirect()->route('chat.show', $conversation->id);
+        return redirect()->route('chats.show', $conversation->id);
     }
 
     public function markAsRead(

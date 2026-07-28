@@ -24,7 +24,7 @@ class AuthController extends Controller
     ) {
         $user = $action->execute($request->validated());
         // return redirect()->route('verification.notice');
-        return redirect()->route('chatboard');
+        return redirect()->route('chats.chatboard');
     }
 
     public function showLoginForm()
@@ -38,7 +38,7 @@ class AuthController extends Controller
     ) {
         if ($action->execute($request->validated())) {
             $request->session()->regenerate();
-            return redirect()->route('chatboard');
+            return redirect()->route('chats.chatboard');
         }
 
         return back()->withErrors([
@@ -54,7 +54,7 @@ class AuthController extends Controller
     public function verifyEmail(EmailVerificationRequest $request)
     {
         $request->fulfill();
-        return redirect()->route('chatboard');
+        return redirect()->route('chats.chatboard');
     }
 
     public function resendVerificationLink(Request $request)
