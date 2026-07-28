@@ -12,7 +12,7 @@ const props = defineProps({
 const page = usePage();
 const authUser = computed(() => page.props.auth.user);
 
-const senderName = computed(() => props.message.user.name);
+const senderName = computed(() => props.message.user?.name);
 const isMe = computed(
     () => authUser.value.id === props.message.user_id ?? false,
 );
@@ -48,18 +48,18 @@ const dateFormatter = (timestamp) => {
 </script>
 
 <template>
-    <div
+    <div :id="`message-${message.id}`"
         :class="[
             'flex items-end space-x-2 p-2 max-w-[85%] sm:max-w-[70%]',
             isMe ? 'ml-auto flex-row-reverse space-x-reverse' : 'mr-auto',
         ]"
     >
-        <div
+        <!-- <div
             class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 shrink-0 border border-transparent dark:border-slate-700/50"
         >
-            <img v-if="message.user.avatar" :src="message.user.avatar" class="rounded-full"/>
+            <img v-if="message.user?.avatar" :src="message.user.avatar" class="rounded-full"/>
             <span v-else class="rounded-full">{{ senderName ? senderName.charAt(0).toUpperCase() : "U" }}</span>
-        </div>
+        </div> -->
 
         <div class="flex flex-col">
             <div

@@ -6,6 +6,7 @@ use App\Actions\Chat\MarkConversationAsReadAction;
 use App\Actions\Chat\StartConversationAction;
 use App\Http\Requests\StoreConversationRequest;
 use App\Models\Conversation;
+use App\Models\Message;
 use App\Queries\Chat\GetUserConversations;
 use Inertia\Inertia;
 
@@ -28,12 +29,26 @@ class ChatController extends Controller
 
         $markConversationAsRead->execute($conversation, auth()->user());
 
+        $lastPage = $conversation->messages()
+            ->oldest()
+            ->paginate(30)
+            ->lastPage();
+
+        $page = request()->integer('page', $lastPage);
+
         return Inertia::render('Chat', [
             'conversations' => $query->execute(auth()->user()),
-            'conversation' => $conversation->load([
-                'messages.user',
-                'users',
-            ]),
+            'conversation' => $conversation->load('users'),
+            'messages' => Inertia::scroll(
+                fn() => $conversation
+                    ->messages()
+                    ->oldest()
+                    // ->paginate(30)
+                    ->paginate(
+                        perPage: 30,
+                        page: $page,
+                    )
+            ),
         ]);
     }
 

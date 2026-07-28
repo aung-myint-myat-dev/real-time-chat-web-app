@@ -18,12 +18,13 @@ Route::middleware(['guest'])->get('/', function () {
 Route::middleware(['auth'])
     ->group(function () {
         Route::get('/chats', [ChatController::class, 'index'])->name('chatboard');
-        Route::post('/chats', [ChatController::class, 'store'])->name('chat.store');
-        Route::get('/chats/{conversation}', [ChatController::class, 'show'])->name('chat.show');
-        Route::post('/chats/{conversation}/read', [ChatController::class, 'markAsRead'])->name('chat.read');
+        Route::post('/chats', [ChatController::class, 'store'])->name('chats.store');
+        Route::get('/chats/{conversation}', [ChatController::class, 'show'])->name('chats.show');
+        Route::post('/chats/{conversation}/read', [ChatController::class, 'markAsRead'])->name('chats.read');
 
         Route::post('/users/update-last-seen-at',  [UserController::class, 'updateLastSeenAt']);
 
+        Route::get('/chats/{conversation}/messages', [MessageController::class, 'index'])->name('message.index');
         Route::post('/messages', [MessageController::class, 'store'])->name('message.store');
 
         Route::get('/users/search', [UserSearchController::class, 'index']);
