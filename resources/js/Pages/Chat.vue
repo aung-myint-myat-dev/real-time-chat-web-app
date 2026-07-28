@@ -42,11 +42,11 @@ const otherUser = computed(() => {
 
 
 const realtimeMessages = ref([]);
-// const messages = computed(() => [
-//     // ...props.messages.data,
-//     ...realtimeMessages.value
-// ]);
 const messages = ref([]);
+
+watch(realtimeMessages.value, () => {
+    messages.value = [...messages.value, ...realtimeMessages.value];
+});
 
 const reply_message_id = ref(null);
 const type = ref("text");
@@ -54,8 +54,6 @@ const message = ref("");
 
 const isOtherUserTyping = ref(false);
 const isOtherUserTypingTimer = ref(null);
-
-// const messagesContainer = ref(null);
 
 const isAtBottom = ref(false);
 const showScrollButton = ref(false);
@@ -78,105 +76,6 @@ const scrollToBottom = async () => {
     showScrollButton.value = false;
     unReadMsgCount.value = 0;
 };
-
-
-// watch(
-//     () => props.conversation?.id,
-//     async () => {
-//         await nextTick();
-//         scrollToBottom();
-//     }
-// );
-
-const previousHeight = ref(0);
-
-// const handleScroll = (e) => {
-//     const el = e.target;
-
-//     if (el.scrollTop < 100) {
-//         previousHeight.value = el.scrollHeight;
-//     }
-// };
-
-watch(
-    () => messages.value.length,
-    async () => {
-        await nextTick();
-
-        const el = messagesContainer.value;
-
-        if (!el) return;
-
-        if (previousHeight.value) {
-            el.scrollTop = el.scrollHeight - previousHeight.value;
-            previousHeight.value = 0;
-        }
-    }
-);
-
-// const handleScroll = () => {
-
-//     const el = messagesContainer.value;
-
-//     if (!el) return;
-
-
-//     const distance =
-//         el.scrollHeight -
-//         el.scrollTop -
-//         el.clientHeight;
-
-
-//     isAtBottom.value = distance < 50;
-
-//     if (isAtBottom.value) {
-//         showScrollButton.value = false;
-//     }
-// };
-
-const firstUnreadMessageId = ref(null);
-
-const bottomAnchor = ref(null);
-
-// const scrollToBottom = async () => {
-//     await nextTick();
-
-//         // bottomAnchor.value.scrollIntoView({
-//         //     behavior: "smooth",
-//         //     block: "end",
-//         // });
-
-//     const el = messagesContainer.value;
-
-//     console.log(el.clientHeight, el.scrollHeight, el.scrollTop);
-
-// }
-
-
-const latestMessageId = 255;
-// const scrollToBottom = async (latestMessageId) => {
-//     await nextTick();
-
-//     requestAnimationFrame(() => {
-//         const el = messagesContainer.value;
-
-//         if (!el) return;
-
-//         const element = document.getElementById(
-//             `message-${latestMessageId}`
-//         );
-
-//         if (element) {
-//             element.scrollIntoView({
-//                 behavior: "smooth",
-//                 block: "end",
-//             });
-//         } else {
-//             // fallback: scroll container to bottom
-//             el.scrollTop = el.scrollHeight;
-//         }
-//     });
-// };
 
 const markConversationAsRead = (messageId = null) => {
     if (!props.conversation?.id) return;
@@ -217,36 +116,31 @@ const getMessages = async () => {
     console.log("Fetched messages:", messages.value);
 };
 
-onMounted(() => {
-    // await nextTick();
+onMounted(async () => {
 
-    // scrollToBottom();
-    // isAtBottom.value = true;
-
-    getMessages();
+    await getMessages();
     scrollToBottom();
-
 
     Echo.private(`chats.${props.conversation?.id}`)
         .listen(".message.sent", async (e) => {
-
+            console.log("Received message:", e);
             realtimeMessages.value.push(e);
             await nextTick();
 
-            // if (isAtBottom.value) {
+            if (isAtBottom.value) {
 
-            //     scrollToBottom();
+                scrollToBottom();
 
-            // } else {
+            } else {
 
-            //     unReadMsgCount.value++;
+                unReadMsgCount.value++;
 
-            //     if (!firstUnreadMessageId.value) {
-            //         firstUnreadMessageId.value = e.id;
-            //     }
+                if (!firstUnreadMessageId.value) {
+                    firstUnreadMessageId.value = e.id;
+                }
 
-            //     showScrollButton.value = true;
-            // }
+                showScrollButton.value = true;
+            }
 
         })
         .listenForWhisper("typing", (response) => {
