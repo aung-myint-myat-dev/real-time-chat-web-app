@@ -14,11 +14,14 @@ import { useNotificationSound } from "../composables/useSound.js";
 provideTheme();
 
 const page = usePage();
+const selectedChatId = ref(page.props.conversation?.id);
+
 const conversationStore = useConversationStore();
+const onlineUsersStore = useOnlineUsersStore();
+const notificationStore = useNotificationStore();
 const { playSound } = useNotificationSound();
 
 conversationStore.setConversations(page.props.conversations);
-
 watch(
     page.props.conversations,
     (value) => {
@@ -28,34 +31,10 @@ watch(
         immediate: true,
     },
 );
-
 const { conversations } = storeToRefs(conversationStore);
 
-const selectedChatId = ref(page.props.conversation?.id);
 const currentView = ref('lists');
 const selectedSearchUser = ref(null);
-
-const handleSelectedChatId = (id) => {
-    selectedChatId.value = id;
-    currentView.value = "chat";
-};
-
-const handleBackToLists = () => {
-    router.get("/chats");
-    currentView.value = "lists";
-    selectedChatId.value = null;
-    selectedSearchUser.value = null;
-};
-
-const handleSelectedSearchedUser = (user) => {
-    router.get("/chats");
-    currentView.value = "chat";
-    selectedChatId.value = null;
-    selectedSearchUser.value = user;
-};
-
-provide("BackToListsHandaler", { handleBackToLists });
-provide("HaldleSelectedChatId", { handleSelectedChatId });
 
 watch(
     () => page.props?.conversation?.id,
@@ -68,6 +47,22 @@ watch(
     { immediate: true },
 );
 
+const handleSelectedChatId = (id) => {
+    selectedChatId.value = id;
+    currentView.value = "chat";
+};
+const handleBackToLists = () => {
+    router.get("/chats");
+    currentView.value = "lists";
+    selectedChatId.value = null;
+    selectedSearchUser.value = null;
+};
+const handleSelectedSearchedUser = (user) => {
+    router.get("/chats");
+    currentView.value = "chat";
+    selectedChatId.value = null;
+    selectedSearchUser.value = user;
+};
 const handleStartConversation = (otherUserId) => {
     router.post(
         "/chats",
@@ -81,21 +76,20 @@ const handleStartConversation = (otherUserId) => {
         },
     );
 };
-
-const onlineUsersStore = useOnlineUsersStore();
-const notificationStore = useNotificationStore();
-
 const handlePopState = () => {
     currentView.value = "lists";
     selectedChatId.value = null;
     selectedSearchUser.value = null;
 };
 
+provide("BackToListsHandaler", { handleBackToLists });
+provide("HaldleSelectedChatId", { handleSelectedChatId });
+provide("handleSelectedSearchedUser", { handleSelectedSearchedUser });
+
 onMounted(() => {
     if(typeof window !== 'undefined') {
         window.addEventListener("popstate", handlePopState);
     }
-
     Echo.join("online")
         .here((users) => {
             users.forEach((user) => {
@@ -111,7 +105,6 @@ onMounted(() => {
         .error((e) => {
             console.log(e);
         });
-
     Echo.private(`users.${page.props.auth.user.id}`)
         .listen(".message.sent", (e) => {
             if (e.user_id !== page.props.auth.user.id && selectedChatId.value !== e.conversation_id) {
@@ -119,18 +112,14 @@ onMounted(() => {
                 notificationStore.add(e);
             }
         });
-
 });
-
 
 onUnmounted(() => {
     Echo.leave(`users.${page.props.auth.user.id}`);
-
     if(typeof window !== 'undefined') {
         window.removeEventListener("popstate", handlePopState);
     }
 });
-
 </script>
 
 <template>
