@@ -38,4 +38,7 @@ Route::middleware(['auth'])
             Route::get('profile/{id}', 'show')->name('profile.show');
         });
 
+        Route::post('/users/update-last-seen-at',  [UserController::class, 'updateLastSeenAt']);
+        Route::post('/messages', [MessageController::class, 'store'])->name('message.store');
+        Route::get('/users/search', [UserSearchController::class, 'index']);
     });

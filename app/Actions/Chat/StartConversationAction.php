@@ -4,6 +4,7 @@ namespace App\Actions\Chat;
 
 use App\Actions\Chat\BroadcastConversationUpdateAction;
 use App\Events\Conversation\ConversationCreated;
+use App\Events\Message\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
 
@@ -37,11 +38,13 @@ class StartConversationAction
             ],
         ]);
 
-        Message::create([
+        $message = Message::create([
             'conversation_id' => $conversation->id,
             'user_id' => $user->id,
             'body' => 'Hi',
         ]);
+        
+        broadcast(new MessageSent($message));
 
         $conversation->load('users');
 
