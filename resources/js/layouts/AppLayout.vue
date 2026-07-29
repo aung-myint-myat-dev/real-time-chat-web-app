@@ -93,7 +93,7 @@ onUnmounted(() => {
         <div class="fixed top-5 left-1/2 -translate-x-1/2 w-full max-w-md z-55 px-4">
             <Toast :show="toast.show" :message="toast.message" :type="toast.type"/>
         </div>
-        <NotificationContainer :notifications="notificationStore.notifications" @close="notificationStore.remove" />
+        <NotificationContainer :notifications="notificationStore.notifications" />
         <header
             class="sticky top-0 z-40 bg-background border-b border-border-color h-16  flex items-center justify-between px-4 sm:px-8">
 

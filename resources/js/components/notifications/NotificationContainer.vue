@@ -5,7 +5,6 @@ defineProps({
     notifications: Array,
 });
 
-const emit = defineEmits(['close']);
 </script>
 
 <template>
@@ -16,7 +15,7 @@ const emit = defineEmits(['close']);
             leave-from-class="translate-y-0 opacity-100 scale-100" leave-to-class="-translate-y-4 opacity-0 scale-95"
             move-class="transition-all duration-300">
             <NotificationItem v-for="notification in notifications" :key="notification.id" :notification="notification"
-                class="pointer-events-auto" @close="emit('close', $event)" />
+                class="pointer-events-auto" />
         </TransitionGroup>
     </div>
 </template>

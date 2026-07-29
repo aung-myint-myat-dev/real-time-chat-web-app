@@ -7,6 +7,9 @@ export const useNotificationStore = defineStore("notifications", () => {
     const count = computed(() => notifications.value.length);
 
     const add = (noti) => {
+        if (notifications.value.some((n) => n.id === noti.id)) {
+            return;
+        }
         notifications.value.push(noti);
         if (notifications.value.length > 2) {
             notifications.value.shift();

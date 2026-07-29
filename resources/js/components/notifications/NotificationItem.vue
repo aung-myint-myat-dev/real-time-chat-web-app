@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import { onMounted } from 'vue';
 import { useOnlineUsersStore } from '../../stores/onlineUsersStore';
+import { useNotificationStore } from '../../stores/notificationStore';
 
 const props = defineProps({
     notification: {
@@ -11,11 +12,15 @@ const props = defineProps({
 });
 
 const onlineUsersStore = useOnlineUsersStore();
-const emit = defineEmits(['close']);
+const notificationStore = useNotificationStore();
+
+const close = (id) => {
+    notificationStore.remove(id);
+}
 
 onMounted(() => {
     setTimeout(() => {
-        emit('close', props.notification.id);
+        close(props.notification?.id);
     }, 10000);
 });
 </script>
@@ -26,8 +31,11 @@ onMounted(() => {
         enter-from-class="-translate-y-8 opacity-0 scale-95" enter-to-class="translate-y-0 opacity-100 scale-100"
         leave-active-class="transform ease-in duration-200 transition-all"
         leave-from-class="translate-y-0 opacity-100 scale-100" leave-to-class="-translate-y-4 opacity-0 scale-95">
-        <Link @click="$emit('close', notification.id)" :href="`/chats/${props.notification.conversation_id}`"
-            class="flex items-center mb-2 gap-3.5 rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] cursor-pointer shadow-xl backdrop-blur-md border border-slate-200/80 bg-white/95 dark:border-zinc-800 dark:bg-zinc-900/95">
+       <Link
+    @click="close(props.notification.id)"
+    :href="`/chats/${props.notification.conversation_id}`"
+    class="flex items-center mb-2 gap-3.5 rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] cursor-pointer shadow-xl backdrop-blur-md border border-slate-200/80 bg-white/95 dark:border-zinc-800 dark:bg-zinc-900/95"
+>
             <!-- Avatar -->
             <div class="relative size-10 shrink-0">
                 <img v-if="notification?.user?.avatar" :src="notification.user.avatar"
@@ -60,7 +68,7 @@ onMounted(() => {
             </div>
 
             <!-- Close Button -->
-            <button @click.stop.prevent="$emit('close', notification.id)"
+            <button @click.stop.prevent="close(props.notification.id)"
                 class="rounded-full p-1.5 transition-colors duration-150 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
                     stroke="currentColor" class="size-3.5">
