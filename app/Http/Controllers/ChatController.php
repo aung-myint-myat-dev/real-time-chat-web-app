@@ -6,6 +6,7 @@ use App\Actions\Chat\MarkConversationAsReadAction;
 use App\Actions\Chat\StartConversationAction;
 use App\Http\Requests\StoreConversationRequest;
 use App\Models\Conversation;
+use App\Models\Message;
 use App\Queries\Chat\GetUserConversations;
 use Inertia\Inertia;
 
@@ -28,12 +29,10 @@ class ChatController extends Controller
 
         $markConversationAsRead->execute($conversation, auth()->user());
 
+
         return Inertia::render('Chat', [
             'conversations' => $query->execute(auth()->user()),
-            'conversation' => $conversation->load([
-                'messages.user',
-                'users',
-            ]),
+            'conversation' => $conversation->load('users'),
         ]);
     }
 

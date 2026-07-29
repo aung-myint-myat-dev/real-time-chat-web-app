@@ -83,7 +83,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    Echo.leave(`users.${page.props.auth.user.id}`);
+    Echo.leave(`users.${page.props.auth?.user?.id}`);
 })
 
 </script>
