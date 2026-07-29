@@ -17,17 +17,13 @@ Route::middleware(['guest'])->get('/', function () {
 
 Route::middleware(['auth'])
     ->group(function () {
-        Route::get('/chats', [ChatController::class, 'index'])->name('chatboard');
-        Route::post('/chats', [ChatController::class, 'store'])->name('chat.store');
-        Route::get('/chats/{conversation}', [ChatController::class, 'show'])->name('chat.show');
-        Route::post('/chats/{conversation}/read', [ChatController::class, 'markAsRead'])->name('chat.read');
-
-        Route::post('/users/update-last-seen-at',  [UserController::class, 'updateLastSeenAt']);
-
-        Route::post('/messages', [MessageController::class, 'store'])->name('message.store');
-
-        Route::get('/users/search', [UserSearchController::class, 'index']);
-
+        Route::controller(ChatController::class)->group(function () {
+            Route::get('/chats', 'index')->name('chatboard');
+            Route::post('/chats', 'store')->name('chat.store');
+            Route::get('/chats/{conversation}', 'show')->name('chat.show');
+            Route::post('/chats/{conversation}/read', 'markAsRead')->name('chat.read');
+        });
+        
         Route::controller(ProfileController::class)->group(function () {
             Route::get('profile', 'index')->name('profile.index');
             Route::put('profile', 'update')->name('profile.update');
@@ -37,4 +33,7 @@ Route::middleware(['auth'])
             Route::get('profile/{id}', 'show')->name('profile.show');
         });
 
+        Route::post('/users/update-last-seen-at',  [UserController::class, 'updateLastSeenAt']);
+        Route::post('/messages', [MessageController::class, 'store'])->name('message.store');
+        Route::get('/users/search', [UserSearchController::class, 'index']);
     });
