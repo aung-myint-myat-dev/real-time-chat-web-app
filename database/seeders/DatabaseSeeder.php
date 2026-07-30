@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Conversation;
 use App\Models\ConversationUser;
 use App\Models\Message;
+use App\Models\MessageRead;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -64,12 +65,21 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($messages as $messageData) {
-            Message::factory()
+            $message = Message::factory()
                 ->forConversation($conversation)
                 ->sentBy($messageData['sender'])
                 ->create([
                     'body' => $messageData['body'],
                 ]);
+
+            $receiver = $conversation->users
+                ->firstWhere('id', '!=', $message->user_id);
+
+            MessageRead::create([
+                'message_id' => $message->id,
+                'user_id' => $receiver->id,
+                'read_at' => now(),
+            ]);
         }
     }
 }

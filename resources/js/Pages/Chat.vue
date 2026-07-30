@@ -16,6 +16,7 @@ import { InfiniteScroll } from "@inertiajs/vue3";
 import WhenVisibleWrapper from "../components/WhenVisibleWrapper.vue";
 import { useOnlineUsersStore } from "../stores/onlineUsersStore.js";
 import axios from "axios";
+import { useConversationStore } from "../stores/conversationStore.js";
 
 defineOptions({
     layout: ChatLayout,
@@ -41,51 +42,64 @@ const otherUser = computed(() => {
 });
 
 
-const realtimeMessages = ref([]);
-const messages = ref([]);
-
-watch(realtimeMessages.value, () => {
-    messages.value = [...messages.value, ...realtimeMessages.value];
-});
-
-const reply_message_id = ref(null);
+const messagesContainer = ref(null);
 const type = ref("text");
+const messages = ref([]);
 const message = ref("");
+// const firstUnreadMessageId = ref(null);
+const unReadMsgCount = ref(0);
+const reply_message_id = ref(null);
 
 const isOtherUserTyping = ref(false);
 const isOtherUserTypingTimer = ref(null);
 
 const isAtBottom = ref(false);
 const showScrollButton = ref(false);
-const unReadMsgCount = ref(0);
 
-const messagesContainer = ref(null);
+const newMessageIds = ref([]);
 
-const firstUnreadMessageId = ref(null);
+const firstNewMessageId = ref(null);
+
+// const scrollToBottom = async () => {
+//     await nextTick();
+//     if (!messagesContainer.value) return;
+
+
+//     if (showScrollButton.value && firstUnreadMessageId.value) {
+
+//         // console.log("scrrolto unread");
+//         await scrollToFirstUnread(firstUnreadMessageId.value);
+
+//         // firstUnreadMessageId.value = null;
+//         showScrollButton.value = false;
+//         isAtBottom.value = false;
+//         unReadMsgCount.value = 0;
+//     } else {
+//         messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+//         // firstUnreadMessageId.value = null;
+//         showScrollButton.value = false;
+//         unReadMsgCount.value = 0;
+//     }
+
+// };
 
 const scrollToBottom = async () => {
     await nextTick();
-    if (!messagesContainer.value) return;
 
+    const el = messagesContainer.value;
 
-    if (showScrollButton.value && firstUnreadMessageId.value) {
+    if (!el) return;
 
-        // console.log("scrrolto unread");
-        await scrollToFirstUnread(firstUnreadMessageId.value);
-
-        console.log('scroll to unread');
-        firstUnreadMessageId.value = null;
-        showScrollButton.value = false;
-        console.log(showScrollButton.value);
-        isAtBottom.value = false;
-        unReadMsgCount.value = 0;
+    if(firstNewMessageId.value) {
+        console.log(firstNewMessageId.value);
+        scrollToMessage(firstNewMessageId.value);
     } else {
-        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
-        firstUnreadMessageId.value = null;
+        el.scrollTop = el.scrollHeight;
+
         showScrollButton.value = false;
         unReadMsgCount.value = 0;
+        isAtBottom.value = true;
     }
-
 };
 
 const scrollToFirstUnread = async (firstUnreadMessageId) => {
@@ -96,6 +110,8 @@ const scrollToFirstUnread = async (firstUnreadMessageId) => {
     );
     // console.log(element);
     if (!element) return;
+
+    await markMessageAsRead(firstUnreadMessageId);
 
     element.scrollIntoView({
         behavior: "smooth",
@@ -164,10 +180,10 @@ const handleScroll = () => {
 const getMessages = async () => {
     const response = await axios.get(`/chats/${props.conversation?.id}/messages`);
     messages.value = response.data.data;
-    nextPageUrl.value = response.data.next_page_url;
-    // console.log("Next page URL:", nextPageUrl.value);
-    // console.log("Fetched messages:", response.data);
+    // console.log(response.data.links.next);
+    nextPageUrl.value = response.data.links.next;
 };
+const conversationStore = useConversationStore();
 
 watch(
     () => props.conversation?.id,
@@ -175,7 +191,21 @@ watch(
         if (!id) return;
 
         await getMessages();
-        scrollToBottom();
+
+        const currentConversation = conversationStore.getConversation(props.conversation?.id);
+
+        const isExistNew = currentConversation.unread.count > 0;
+        console.log(isExistNew);
+
+        if (isExistNew) {
+            scrollToMessage(currentConversation.unread.firstMessageId);
+
+            conversationStore.clearUnreadMessages(currentConversation.id);
+
+        } else {
+            scrollToBottom();
+        }
+
     },
     {
         immediate: true,
@@ -183,13 +213,14 @@ watch(
 );
 
 const loadOlderMessages = async () => {
+
     if (!nextPageUrl.value) return;
 
     // console.log("Loading older messages from:", nextPageUrl.value);
     try {
         const response = await axios.get(nextPageUrl.value);
         messages.value = [...response.data.data, ...messages.value];
-        nextPageUrl.value = response.data.next_page_url;
+        nextPageUrl.value = response.data.links.next;
         // console.log(messages.value);
         // console.log("Next page URL after loading older messages:", nextPageUrl.value);
     } catch (error) {
@@ -197,31 +228,58 @@ const loadOlderMessages = async () => {
     }
 };
 
-onMounted(() => {
+const markMessageAsRead = async (id) => {
 
-    // await getMessages();
-    // scrollToBottom();
+    try {
+        const { data } = await axios.post(`/messages/${id}/mark-as-read`);
 
-    isAtBottom.value = true;
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
+
+}
+
+const scrollToMessage = (id) => {
+
+    // console.log('scroll to first ');
+
+    const element = document.getElementById(
+        `message-${id}`
+    );
+
+    element?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+    });
+};
+
+
+
+onMounted(async () => {
 
     Echo.private(`chats.${props.conversation?.id}`)
         .listen(".message.sent", async (e) => {
-            console.log("Received message:", e);
-            realtimeMessages.value.push(e);
+            // console.log("Received message:", e);
+            // realtimeMessages.value.push(e);
+
+            if (!messages.value.some(message => message.id === e.id)) {
+                messages.value.push(e);
+            }
 
             if (isAtBottom.value === true) {
+                if (e.user_id !== authUser.value.id) {
+                    await markMessageAsRead(e.id);
+                }
                 scrollToBottom();
             } else {
                 unReadMsgCount.value++;
 
-                if (!firstUnreadMessageId.value) {
-                    firstUnreadMessageId.value = e.id;
+                if (e.user.id !== authUser.value.id && !firstNewMessageId.value) {
+                    firstNewMessageId.value = e.id;
                 }
-
                 showScrollButton.value = true;
             }
-
-
 
         })
         .listenForWhisper("typing", (response) => {
@@ -293,7 +351,7 @@ onUnmounted(() => {
 
 
             <!-- Scroll down button -->
-            <button v-if="showScrollButton && !isAtBottom" @click="scrollToBottom" class="absolute bottom-6 left-1/2 -translate-x-1/2
+            <button v-if="showScrollButton" @click="scrollToBottom" class="absolute bottom-6 left-1/2 -translate-x-1/2
                 size-10 rounded-full flex items-center justify-center
                 bg-gray-500 z-20">
 

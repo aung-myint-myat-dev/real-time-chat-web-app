@@ -14,7 +14,7 @@ const authUser = computed(() => page.props.auth.user);
 
 const senderName = computed(() => props.message.user?.name);
 const isMe = computed(
-    () => authUser.value.id === props.message.user_id ?? false,
+    () => authUser.value.id === props.message.user.id ?? false,
 );
 
 const dateFormatter = (timestamp) => {

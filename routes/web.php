@@ -30,6 +30,7 @@ Route::middleware(['auth'])
 
         Route::get('/chats/{conversation}/messages', [MessageController::class, 'index'])->name('message.index');
         Route::post('/messages', [MessageController::class, 'store'])->name('message.store');
+        Route::post('/messages/{message}/mark-as-read', [MessageController::class, 'markAsRead'])->name('message.read');
 
         Route::get('/users/search', [UserSearchController::class, 'index']);
 

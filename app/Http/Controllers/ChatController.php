@@ -27,7 +27,7 @@ class ChatController extends Controller
     ) {
         $this->authorize('view', $conversation);
 
-        $markConversationAsRead->execute($conversation, auth()->user());
+        // $markConversationAsRead->execute($conversation, auth()->user());
 
 
         return Inertia::render('Chat', [

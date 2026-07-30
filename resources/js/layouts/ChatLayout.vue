@@ -31,7 +31,6 @@ watch(
         immediate: true,
     },
 );
-const { conversations } = storeToRefs(conversationStore);
 
 const currentView = ref('lists');
 const selectedSearchUser = ref(null);
@@ -87,7 +86,7 @@ provide("HaldleSelectedChatId", { handleSelectedChatId });
 provide("handleSelectedSearchedUser", { handleSelectedSearchedUser });
 
 onMounted(() => {
-    if(typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
         window.addEventListener("popstate", handlePopState);
     }
     Echo.join("online")
@@ -112,11 +111,33 @@ onMounted(() => {
                 notificationStore.add(e);
             }
         });
+
+    conversationStore.conversations.forEach((conversation) => {
+        Echo.private(`chats.${conversation.id}`)
+            .listen(".message.sent", (e) => {
+                // Ignore messages sent by yourself
+                if (e.user_id === page.props.auth.user.id) return;
+
+                // Ignore the currently opened conversation
+                if (e.conversation_id === selectedChatId.value) return;
+
+                conversationStore.addUnreadMessage(
+                    e.conversation_id,
+                    e.id
+                );
+            });
+    });
+
 });
 
 onUnmounted(() => {
     Echo.leave(`users.${page.props.auth.user.id}`);
-    if(typeof window !== 'undefined') {
+
+    conversationStore.conversations.forEach((conversation) => {
+        Echo.leave(`chats.${conversation.id}`);
+    });
+
+    if (typeof window !== 'undefined') {
         window.removeEventListener("popstate", handlePopState);
     }
 });
@@ -125,7 +146,7 @@ onUnmounted(() => {
 <template>
     <div class="h-screen font-brand flex bg-background text-text-color">
 
-        <NotificationContainer :notifications="notificationStore.notifications"  @close="notificationStore.remove"/>
+        <NotificationContainer :notifications="notificationStore.notifications" @close="notificationStore.remove" />
 
         <!-- Layout Sidebar -->
         <div :class="[
@@ -165,10 +186,8 @@ onUnmounted(() => {
                                 <img :src="selectedSearchUser.avatar" :alt="selectedSearchUser.name + '-profile'"
                                     class="w-full h-full object-cover" />
                             </div>
-                            <div
-                                v-else
-                                class="size-25 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800 text-4xl font-bold flex items-center justify-center"
-                            >
+                            <div v-else
+                                class="size-25 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800 text-4xl font-bold flex items-center justify-center">
                                 {{ selectedSearchUser.name?.charAt(0) || "U" }}
                             </div>
                         </div>

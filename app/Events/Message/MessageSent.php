@@ -2,6 +2,7 @@
 
 namespace App\Events\Message;
 
+use App\Http\Resources\MessageResource;
 use App\Models\Message;
 use ArrayAccess;
 use Illuminate\Broadcasting\Channel;
@@ -52,16 +53,14 @@ class MessageSent implements ShouldBroadcastNow
         return [
             'id' => $this->message->id,
             'body' => $this->message->body,
-            'user_id' => $this->message->user_id,
             'conversation_id' => $this->message->conversation_id,
-            'created_at' => $this->message->created_at,
 
             'user' => [
                 'id' => $this->message->user->id,
                 'name' => $this->message->user->name,
-                'username' => $this->message->user->username,
-                'avatar' => $this->message->user->avatar,
             ],
+
+            'created_at' => $this->message->created_at,
         ];
     }
 }
