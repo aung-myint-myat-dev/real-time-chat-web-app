@@ -2,21 +2,14 @@
 import { ArrowLeft, ArrowDown } from "@lucide/vue";
 import ChatLayout from "../layouts/ChatLayout.vue";
 import ChatMessage from "../components/app/ChatMessage.vue";
-import {
-    ref,
-    inject,
-    onMounted,
-    onUnmounted,
-    computed,
-    nextTick,
-    watch,
-} from "vue";
-import { Link, usePage, router } from "@inertiajs/vue3";
-import { InfiniteScroll } from "@inertiajs/vue3";
-import WhenVisibleWrapper from "../components/WhenVisibleWrapper.vue";
-import { useOnlineUsersStore } from "../stores/onlineUsersStore.js";
+import { ref, inject, onUnmounted, computed, watch } from "vue";
+import { usePage } from "@inertiajs/vue3";
 import axios from "axios";
+import { useOnlineUsersStore } from "../stores/onlineUsersStore.js";
 import { useConversationStore } from "../stores/conversationStore.js";
+import { useChatScroll } from "../composables/useChatScroll.js";
+import { useTypingIndicator } from "../composables/useTypingIndicator.js";
+import { useChatMessages } from "../composables/useChatMessages,js";
 
 defineOptions({
     layout: ChatLayout,
@@ -24,280 +17,157 @@ defineOptions({
 
 const props = defineProps({
     conversation: Object,
-    // messages: Object, // Laravel paginator wrapped with Inertia::scroll()
 });
 
 const page = usePage();
-
 const { handleBackToLists } = inject("BackToListsHandaler");
+
+const onlineUsersStore = useOnlineUsersStore();
+const conversationStore = useConversationStore();
 
 const authUser = computed(() => page.props.auth.user);
 
 const otherUser = computed(() => {
     if (!props.conversation) return null;
-
-    return props.conversation.users.find(
-        (user) => user.id !== authUser.value.id
-    );
+    return props.conversation.users.find((user) => user.id !== authUser.value.id);
 });
 
+// ---------------------------------------------------------------------------
+// Messages (fetch, pagination, dedupe)
+// ---------------------------------------------------------------------------
+const { messages, nextPageUrl, getMessages, loadOlderMessages, appendIfNew } =
+    useChatMessages();
 
-const messagesContainer = ref(null);
-const type = ref("text");
-const messages = ref([]);
 const message = ref("");
-// const firstUnreadMessageId = ref(null);
-const unReadMsgCount = ref(0);
-const reply_message_id = ref(null);
+const messageType = ref("text");
+const replyMessageId = ref(null);
+const sendError = ref(null);
 
-const isOtherUserTyping = ref(false);
-const isOtherUserTypingTimer = ref(null);
-
-const isAtBottom = ref(false);
-const showScrollButton = ref(false);
-
-const newMessageIds = ref([]);
-
-const firstNewMessageId = ref(null);
-
-// const scrollToBottom = async () => {
-//     await nextTick();
-//     if (!messagesContainer.value) return;
-
-
-//     if (showScrollButton.value && firstUnreadMessageId.value) {
-
-//         // console.log("scrrolto unread");
-//         await scrollToFirstUnread(firstUnreadMessageId.value);
-
-//         // firstUnreadMessageId.value = null;
-//         showScrollButton.value = false;
-//         isAtBottom.value = false;
-//         unReadMsgCount.value = 0;
-//     } else {
-//         messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
-//         // firstUnreadMessageId.value = null;
-//         showScrollButton.value = false;
-//         unReadMsgCount.value = 0;
-//     }
-
-// };
-
-const scrollToBottom = async () => {
-    await nextTick();
-
-    const el = messagesContainer.value;
-
-    if (!el) return;
-
-    if(firstNewMessageId.value) {
-        console.log(firstNewMessageId.value);
-        scrollToMessage(firstNewMessageId.value);
-    } else {
-        el.scrollTop = el.scrollHeight;
-
-        showScrollButton.value = false;
-        unReadMsgCount.value = 0;
-        isAtBottom.value = true;
+async function markMessageAsRead(messageId) {
+    try {
+        await axios.post(`/messages/${messageId}/mark-as-read`);
+    } catch (error) {
+        console.error("Failed to mark message as read:", error);
     }
-};
+}
 
-const scrollToFirstUnread = async (firstUnreadMessageId) => {
-    await nextTick();
+async function handleSendMessage() {
+    if (!message.value.trim()) return;
 
-    const element = document.getElementById(
-        `message-${firstUnreadMessageId}`
-    );
-    // console.log(element);
-    if (!element) return;
+    const body = message.value;
+    sendError.value = null;
 
-    await markMessageAsRead(firstUnreadMessageId);
-
-    element.scrollIntoView({
-        behavior: "smooth",
-        block: "center", // or "start", "nearest"
-    });
-};
-
-const markConversationAsRead = (messageId = null) => {
-    if (!props.conversation?.id) return;
-
-    axios.post(`/chats/${props.conversation.id}/read`, {
-        message_id: messageId,
-    });
-};
-
-const handleSendMessage = async () => {
     try {
         await axios.post("/messages", {
             conversation_id: props.conversation.id,
             user_id: authUser.value.id,
-            body: message.value,
-            type: type.value,
-            reply_message_id: reply_message_id.value,
+            body,
+            type: messageType.value,
+            reply_message_id: replyMessageId.value,
         });
 
         message.value = "";
+        replyMessageId.value = null;
         scrollToBottom();
     } catch (error) {
-        console.log(error);
+        console.error("Failed to send message:", error);
+        sendError.value = "Message failed to send. Please try again.";
     }
-};
-
-const sendTypingEvent = () => {
-    Echo.private(`chats.${props.conversation.id}`).whisper("typing", {
-        user_id: authUser.value.id,
-    });
-};
-
-
-const onlineUsersStore = useOnlineUsersStore();
-
-const nextPageUrl = ref("");
-
-const handleScroll = () => {
-    const el = messagesContainer.value;
-    if (!el) return;
-
-    const distanceFromBottom =
-        el.scrollHeight - el.clientHeight - el.scrollTop;
-
-    // Load older messages when user is near the top
-    if (el.scrollTop < el.clientHeight / 2 && nextPageUrl.value) {
-        loadOlderMessages();
-    }
-
-    // Show/hide scroll button
-    if (distanceFromBottom > el.clientHeight * 2) {
-        showScrollButton.value = true;
-        isAtBottom.value = false;
-    } else {
-        showScrollButton.value = false;
-        isAtBottom.value = true;
-    }
-};
-
-const getMessages = async () => {
-    const response = await axios.get(`/chats/${props.conversation?.id}/messages`);
-    messages.value = response.data.data;
-    // console.log(response.data.links.next);
-    nextPageUrl.value = response.data.links.next;
-};
-const conversationStore = useConversationStore();
-
-watch(
-    () => props.conversation?.id,
-    async (id) => {
-        if (!id) return;
-
-        await getMessages();
-
-        const currentConversation = conversationStore.getConversation(props.conversation?.id);
-
-        const isExistNew = currentConversation.unread.count > 0;
-        console.log(isExistNew);
-
-        if (isExistNew) {
-            scrollToMessage(currentConversation.unread.firstMessageId);
-
-            conversationStore.clearUnreadMessages(currentConversation.id);
-
-        } else {
-            scrollToBottom();
-        }
-
-    },
-    {
-        immediate: true,
-    }
-);
-
-const loadOlderMessages = async () => {
-
-    if (!nextPageUrl.value) return;
-
-    // console.log("Loading older messages from:", nextPageUrl.value);
-    try {
-        const response = await axios.get(nextPageUrl.value);
-        messages.value = [...response.data.data, ...messages.value];
-        nextPageUrl.value = response.data.links.next;
-        // console.log(messages.value);
-        // console.log("Next page URL after loading older messages:", nextPageUrl.value);
-    } catch (error) {
-        console.error("Error loading older messages:", error);
-    }
-};
-
-const markMessageAsRead = async (id) => {
-
-    try {
-        const { data } = await axios.post(`/messages/${id}/mark-as-read`);
-
-        console.log(data);
-    } catch (error) {
-        console.error(error);
-    }
-
 }
 
-const scrollToMessage = (id) => {
+// ---------------------------------------------------------------------------
+// Scroll (bottom-tracking, unread count, scroll-to-message)
+// ---------------------------------------------------------------------------
+const {
+    containerRef: messagesContainer,
+    isAtBottom,
+    showScrollButton,
+    unreadCount,
+    pendingScrollTargetId,
+    scrollToBottom,
+    scrollToMessageId,
+    handleScroll,
+} = useChatScroll({ onLoadOlder: loadOlderMessages });
 
-    // console.log('scroll to first ');
+// ---------------------------------------------------------------------------
+// Typing indicator
+// ---------------------------------------------------------------------------
+const { isOtherUserTyping, notifyTyping, handleWhisper } = useTypingIndicator(
+    computed(() => `chats.${props.conversation?.id}`),
+    computed(() => authUser.value.id),
+    computed(() => otherUser.value?.id)
+);
 
-    const element = document.getElementById(
-        `message-${id}`
-    );
+// ---------------------------------------------------------------------------
+// Realtime channel subscription
+// Re-subscribes correctly whenever the conversation changes, instead of
+// binding once in onMounted to whatever conversation was active at load.
+// ---------------------------------------------------------------------------
+let subscribedConversationId = null;
 
-    element?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-    });
-};
+function handleIncomingMessage(e) {
+    appendIfNew(e);
 
+    if (isAtBottom.value) {
+        if (e.user_id !== authUser.value.id) {
+            markMessageAsRead(e.id);
+        }
+        scrollToBottom();
+    } else {
+        unreadCount.value++;
+        if (e.user_id !== authUser.value.id && !pendingScrollTargetId.value) {
+            pendingScrollTargetId.value = e.id;
+        }
+        showScrollButton.value = true;
+    }
+}
 
+function subscribeToConversation(conversationId) {
+    unsubscribeFromConversation();
 
-onMounted(async () => {
+    subscribedConversationId = conversationId;
+    Echo.private(`chats.${conversationId}`)
+        .listen(".message.sent", handleIncomingMessage)
+        .listenForWhisper("typing", handleWhisper);
+}
 
-    Echo.private(`chats.${props.conversation?.id}`)
-        .listen(".message.sent", async (e) => {
-            // console.log("Received message:", e);
-            // realtimeMessages.value.push(e);
+function unsubscribeFromConversation() {
+    if (subscribedConversationId) {
+        Echo.leave(`chats.${subscribedConversationId}`);
+        subscribedConversationId = null;
+    }
+}
 
-            if (!messages.value.some(message => message.id === e.id)) {
-                messages.value.push(e);
-            }
+// ---------------------------------------------------------------------------
+// React to conversation changes: subscribe, fetch, scroll
+// ---------------------------------------------------------------------------
+watch(
+    () => props.conversation?.id,
+    async (conversationId) => {
+        if (!conversationId) return;
 
-            if (isAtBottom.value === true) {
-                if (e.user_id !== authUser.value.id) {
-                    await markMessageAsRead(e.id);
-                }
-                scrollToBottom();
-            } else {
-                unReadMsgCount.value++;
+        subscribeToConversation(conversationId);
+        await getMessages(conversationId);
 
-                if (e.user.id !== authUser.value.id && !firstNewMessageId.value) {
-                    firstNewMessageId.value = e.id;
-                }
-                showScrollButton.value = true;
-            }
+        const currentConversation = conversationStore.getConversation(conversationId);
+        const hasUnread = currentConversation?.unread?.count > 0;
 
-        })
-        .listenForWhisper("typing", (response) => {
-            isOtherUserTyping.value =
-                response.user_id === otherUser.value?.id;
-
-            clearTimeout(isOtherUserTypingTimer.value);
-
-            isOtherUserTypingTimer.value = setTimeout(() => {
-                isOtherUserTyping.value = false;
-            }, 1000);
-        });
-});
+        if (hasUnread) {
+            console.log(hasUnread);
+            scrollToMessageId(currentConversation.unread.firstMessageId);
+            conversationStore.clearUnreadMessages(conversationId);
+        } else {
+            await scrollToBottom();
+        }
+    },
+    { immediate: true }
+);
 
 onUnmounted(() => {
-    Echo.leave(`chats.${props.conversation?.id}`);
+    unsubscribeFromConversation();
 });
 </script>
+
 <template>
     <div v-if="props.conversation" class="h-screen overflow-hidden flex flex-col">
 
@@ -310,7 +180,7 @@ onUnmounted(() => {
                 </button>
 
                 <div class="relative size-10 shrink-0">
-                    <img v-if="otherUser.avatar" :src="otherUser.avatar"
+                    <img v-if="otherUser?.avatar" :src="otherUser.avatar"
                         class="size-full object-cover rounded-full border border-slate-200 dark:border-slate-700" />
 
                     <div v-else
@@ -318,7 +188,7 @@ onUnmounted(() => {
                         {{ otherUser?.name?.charAt(0).toUpperCase() }}
                     </div>
 
-                    <span v-if="onlineUsersStore.isOnline(otherUser.id)"
+                    <span v-if="otherUser && onlineUsersStore.isOnline(otherUser.id)"
                         class="absolute bottom-0 right-0 size-3 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
                 </div>
 
@@ -328,10 +198,10 @@ onUnmounted(() => {
                     </h2>
 
                     <p v-if="isOtherUserTyping" class="text-[12px] text-white animate-pulse">
-                        {{ otherUser.name }} is typing....
+                        {{ otherUser?.name }} is typing....
                     </p>
 
-                    <p v-if="!onlineUsersStore.isOnline(otherUser.id)" class="text-xs text-gray-500">
+                    <p v-else-if="otherUser && !onlineUsersStore.isOnline(otherUser.id)" class="text-xs text-gray-500">
                         {{ otherUser.last_seen_at }}
                     </p>
                 </div>
@@ -345,19 +215,18 @@ onUnmounted(() => {
 
             <div ref="messagesContainer" class="h-full overflow-y-auto p-4" @scroll="handleScroll">
 
-                <ChatMessage v-for="message in messages" :key="message.id" :message="message" />
+                <ChatMessage v-for="msg in messages" :key="msg.id" :message="msg" />
 
             </div>
-
 
             <!-- Scroll down button -->
             <button v-if="showScrollButton" @click="scrollToBottom" class="absolute bottom-6 left-1/2 -translate-x-1/2
                 size-10 rounded-full flex items-center justify-center
                 bg-gray-500 z-20">
 
-                <span v-if="unReadMsgCount" class="absolute -top-2.5 left-1/2 -translate-x-1/2
+                <span v-if="unreadCount" class="absolute -top-2.5 left-1/2 -translate-x-1/2
                     size-5 rounded-full bg-brand-500 text-xs text-white">
-                    {{ unReadMsgCount }}
+                    {{ unreadCount }}
                 </span>
 
                 <ArrowDown />
@@ -371,6 +240,10 @@ onUnmounted(() => {
         <div class="border-t border-slate-200 dark:border-slate-700
             bg-white dark:bg-slate-800 p-4 shrink-0">
 
+            <p v-if="sendError" class="text-xs text-red-500 mb-2">
+                {{ sendError }}
+            </p>
+
             <form @submit.prevent="handleSendMessage" class="flex items-end gap-3">
 
                 <div class="flex-1">
@@ -382,10 +255,9 @@ onUnmounted(() => {
                         dark:text-white placeholder:text-slate-400
                         focus:outline-none focus:ring-2
                         focus:ring-blue-500 focus:border-transparent" @keydown.enter.exact.prevent="handleSendMessage"
-                        @keydown.shift.enter.stop @keydown="sendTypingEvent" />
+                        @keydown.shift.enter.stop @keydown="notifyTyping" />
 
                 </div>
-
 
                 <button type="submit" :disabled="!message.trim()" class="flex h-12 w-12 items-center justify-center
                     rounded-full bg-blue-600 text-white transition
@@ -395,7 +267,6 @@ onUnmounted(() => {
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M22 2L11 13" />
-
                         <path stroke-linecap="round" stroke-linejoin="round" d="M22 2L15 22L11 13L2 9L22 2Z" />
                     </svg>
 

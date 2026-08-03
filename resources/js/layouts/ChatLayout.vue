@@ -85,61 +85,68 @@ provide("BackToListsHandaler", { handleBackToLists });
 provide("HaldleSelectedChatId", { handleSelectedChatId });
 provide("handleSelectedSearchedUser", { handleSelectedSearchedUser });
 
+// onMounted(() => {
+//     if (typeof window !== 'undefined') {
+//         window.addEventListener("popstate", handlePopState);
+//     }
+//     Echo.join("online")
+//         .here((users) => {
+//             users.forEach((user) => {
+//                 onlineUsersStore.addOnlineUserId(user.id);
+//             });
+//         })
+//         .joining((user) => {
+//             onlineUsersStore.addOnlineUserId(user.id);
+//         })
+//         .leaving((user) => {
+//             onlineUsersStore.removeOnlineUserId(user.id);
+//         })
+//         .error((e) => {
+//             console.log(e);
+//         });
+//     Echo.private(`users.${page.props.auth.user.id}`)
+//         .listen(".message.sent", (e) => {
+//             if (e.user_id !== page.props.auth.user.id && selectedChatId.value !== e.conversation_id) {
+//                 playSound();
+//                 notificationStore.add(e);
+//             }
+//         });
+
+//     conversationStore.conversations.forEach((conversation) => {
+//         Echo.private(`chats.${conversation.id}`)
+//             .listen(".message.sent", (e) => {
+//                 // Ignore messages sent by yourself
+//                 if (e.user_id === page.props.auth.user.id) return;
+
+//                 // Ignore the currently opened conversation
+//                 if (e.conversation_id === selectedChatId.value) return;
+
+//                 conversationStore.addUnreadMessage(
+//                     e.conversation_id,
+//                     e.id
+//                 );
+//             });
+//     });
+
+// });
+
+// onUnmounted(() => {
+//     Echo.leave(`users.${page.props.auth.user.id}`);
+
+//     conversationStore.conversations.forEach((conversation) => {
+//         Echo.leave(`chats.${conversation.id}`);
+//     });
+
+//     if (typeof window !== 'undefined') {
+//         window.removeEventListener("popstate", handlePopState);
+//     }
+// });
 onMounted(() => {
-    if (typeof window !== 'undefined') {
-        window.addEventListener("popstate", handlePopState);
-    }
-    Echo.join("online")
-        .here((users) => {
-            users.forEach((user) => {
-                onlineUsersStore.addOnlineUserId(user.id);
-            });
-        })
-        .joining((user) => {
-            onlineUsersStore.addOnlineUserId(user.id);
-        })
-        .leaving((user) => {
-            onlineUsersStore.removeOnlineUserId(user.id);
-        })
-        .error((e) => {
-            console.log(e);
-        });
-    Echo.private(`users.${page.props.auth.user.id}`)
-        .listen(".message.sent", (e) => {
-            if (e.user_id !== page.props.auth.user.id && selectedChatId.value !== e.conversation_id) {
-                playSound();
-                notificationStore.add(e);
-            }
-        });
-
-    conversationStore.conversations.forEach((conversation) => {
-        Echo.private(`chats.${conversation.id}`)
-            .listen(".message.sent", (e) => {
-                // Ignore messages sent by yourself
-                if (e.user_id === page.props.auth.user.id) return;
-
-                // Ignore the currently opened conversation
-                if (e.conversation_id === selectedChatId.value) return;
-
-                conversationStore.addUnreadMessage(
-                    e.conversation_id,
-                    e.id
-                );
-            });
-    });
-
+    console.log("ChatLayout mounted");
 });
 
 onUnmounted(() => {
-    Echo.leave(`users.${page.props.auth.user.id}`);
-
-    conversationStore.conversations.forEach((conversation) => {
-        Echo.leave(`chats.${conversation.id}`);
-    });
-
-    if (typeof window !== 'undefined') {
-        window.removeEventListener("popstate", handlePopState);
-    }
+    console.log("ChatLayout unmounted");
 });
 </script>
 
