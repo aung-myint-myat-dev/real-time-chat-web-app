@@ -1,0 +1,34 @@
+import { ref } from "vue";
+import axios from "axios";
+
+export function useChatMessages(conversationId) {
+    const messages = ref([]);
+    const nextPageUrl = ref(null);
+
+    async function getMessages(id) {
+        const { data } = await axios.get(`/chats/${id}/messages`);
+        messages.value = data.data;
+        nextPageUrl.value = data.links.next;
+    }
+
+    async function loadOlderMessages() {
+        if (!nextPageUrl.value) return;
+        const { data } = await axios.get(nextPageUrl.value);
+        messages.value = [...data.data, ...messages.value];
+        nextPageUrl.value = data.links.next;
+    }
+
+    function appendIfNew(message) {
+        if (!messages.value.some((m) => m.id === message.id)) {
+            messages.value.push(message);
+        }
+    }
+
+    return {
+        messages,
+        nextPageUrl,
+        getMessages,
+        loadOlderMessages,
+        appendIfNew,
+    };
+}
