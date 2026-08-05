@@ -8,36 +8,21 @@ use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\MessageRead;
+use App\Queries\Chat\GetConversationMessages;
 use Illuminate\Http\Request;
 
 class MessageController extends Controller
 {
 
-    public function index(Conversation $conversation)
+    public function index(Conversation $conversation, GetConversationMessages $query)
     {
         $this->authorize('view', $conversation);
 
-        $page = request()->integer('page', 1);
+        $messages = $query->execute($conversation);
 
-        $paginator = $conversation->messages()
-            ->with([
-                'user',
-                'reads' => function ($query) {
-                    $query->where('user_id', auth()->id());
-                },
-            ])
-            ->latest()
-            ->paginate(
-                perPage: 30,
-                page: $page
-            );
-
-        $paginator->setCollection(
-            $paginator->getCollection()->reverse()->values()
-        );
-
-        return MessageResource::collection($paginator);
+        return MessageResource::collection($messages);
     }
+
 
     public function store(
         StoreMessageRequest $request,
