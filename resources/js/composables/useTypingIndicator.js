@@ -6,7 +6,7 @@ export function useTypingIndicator(channelName, currentUserId, otherUserId) {
     let timer = null;
 
     const notifyTyping = throttle(() => {
-        Echo.private(channelName).whisper("typing", { user_id: currentUserId });
+        Echo.private(channelName.value).whisper("typing", { user_id: currentUserId.value });
     }, 2000);
 
     function handleWhisper({ user_id }) {
