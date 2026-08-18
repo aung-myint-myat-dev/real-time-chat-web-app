@@ -1,8 +1,8 @@
 <script setup>
-import { ArrowLeft, ArrowDown } from "@lucide/vue";
+import { ArrowLeft, ArrowDown, Send, X } from "@lucide/vue";
 import ChatLayout from "../layouts/ChatLayout.vue";
 import ChatMessage from "../components/app/ChatMessage.vue";
-import { ref, inject, onUnmounted, computed, watch } from "vue";
+import { ref, inject, onUnmounted, computed, watch, onMounted } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import axios from "axios";
 import { useOnlineUsersStore } from "../stores/onlineUsersStore.js";
@@ -35,13 +35,16 @@ const otherUser = computed(() => {
 // ---------------------------------------------------------------------------
 // Messages (fetch, pagination, dedupe)
 // ---------------------------------------------------------------------------
-const { messages, nextPageUrl, getMessages, loadOlderMessages, appendIfNew } =
+const { messages, nextPageUrl, getMessages, loadOlderMessages, appendIfNew, updateMessage, deleteMessage } =
     useChatMessages();
 
 const message = ref("");
+const messageInput = ref(null);
 const messageType = ref("text");
 const replyMessageId = ref(null);
 const sendError = ref(null);
+const isEditing = ref(false);
+const editingMessageId = ref(null);
 
 async function markMessageAsRead(messageId) {
     try {
@@ -58,16 +61,24 @@ async function handleSendMessage() {
     sendError.value = null;
 
     try {
-        await axios.post("/messages", {
-            conversation_id: props.conversation.id,
-            user_id: authUser.value.id,
-            body,
-            type: messageType.value,
-            reply_message_id: replyMessageId.value,
-        });
-
+        if(isEditing.value && message.value && editingMessageId.value) {
+            const response = await axios.put(`/messages/${editingMessageId.value}`, {
+                body: message.value,
+            });
+            updateMessage(response.data.message.id, response.data.message.body, response.data.message.edited_at);
+        } else {
+            await axios.post("/messages", {
+                conversation_id: props.conversation.id,
+                user_id: authUser.value.id,
+                body,
+                type: messageType.value,
+                reply_message_id: replyMessageId.value,
+            });
+        }
         message.value = "";
         replyMessageId.value = null;
+        isEditing.value = false;
+        editingMessageId.value = null;
         scrollToBottom();
     } catch (error) {
         console.error("Failed to send message:", error);
@@ -128,6 +139,8 @@ function subscribeToConversation(conversationId) {
     subscribedConversationId = conversationId;
     Echo.private(`chats.${conversationId}`)
         .listen(".message.sent", handleIncomingMessage)
+        .listen(".message.deleted", (e) => deleteMessage(e.id))
+        .listen(".message.edited", (e) => updateMessage(e.id, e.body, e.edited_at))
         .listenForWhisper("typing", handleWhisper);
 }
 
@@ -136,6 +149,35 @@ function unsubscribeFromConversation() {
         Echo.leave(`chats.${subscribedConversationId}`);
         subscribedConversationId = null;
     }
+}
+
+// ---------------------------------------------------------------------------
+// Delete Message
+// ---------------------------------------------------------------------------
+const handleDeleteMessage = async (e) => {
+    try {
+        const response = await axios.delete(`/messages/${e}`);
+        deleteMessage(e);
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Edit Message
+// ---------------------------------------------------------------------------
+const handleEditMessage = async (e) => {
+    messageInput.value.focus();
+    isEditing.value = true;
+    message.value = e.body;
+    editingMessageId.value = e.id;
+}
+
+const cancelEditing = () => {
+    messageInput.value = null;
+    isEditing.value = false;
+    message.value = '';
+    editingMessageId.value = null;
 }
 
 // ---------------------------------------------------------------------------
@@ -215,7 +257,7 @@ onUnmounted(() => {
 
             <div ref="messagesContainer" class="h-full overflow-y-auto p-4" @scroll="handleScroll">
 
-                <ChatMessage v-for="msg in messages" :key="msg.id" :message="msg" />
+                <ChatMessage v-for="msg in messages" :key="msg.id" :message="msg" @delete="handleDeleteMessage($event)" @edit="handleEditMessage($event)"/>
 
             </div>
 
@@ -248,7 +290,7 @@ onUnmounted(() => {
 
                 <div class="flex-1">
 
-                    <textarea v-model="message" rows="1" placeholder="Type a message..." class="w-full resize-none rounded-2xl border
+                    <textarea v-model="message" ref="messageInput" rows="1" placeholder="Type a message..." class="w-full resize-none rounded-2xl border
                         border-slate-300 dark:border-slate-600
                         bg-slate-100 dark:bg-slate-700
                         px-4 py-3 text-sm text-slate-900
@@ -258,20 +300,18 @@ onUnmounted(() => {
                         @keydown.shift.enter.stop @keydown="notifyTyping" />
 
                 </div>
-
+                <button @click="cancelEditing" type="button" v-if="isEditing && editingMessageId" class="flex h-12 w-12 items-center justify-center
+                    rounded-full bg-red-600 text-white transition
+                    hover:bg-red-700 disabled:cursor-not-allowed
+                    disabled:opacity-50"> 
+                    <X size="20"/>
+                </button>
                 <button type="submit" :disabled="!message.trim()" class="flex h-12 w-12 items-center justify-center
                     rounded-full bg-blue-600 text-white transition
                     hover:bg-blue-700 disabled:cursor-not-allowed
                     disabled:opacity-50">
-
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M22 2L11 13" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M22 2L15 22L11 13L2 9L22 2Z" />
-                    </svg>
-
+                    <Send size="20"/>
                 </button>
-
             </form>
 
         </div>

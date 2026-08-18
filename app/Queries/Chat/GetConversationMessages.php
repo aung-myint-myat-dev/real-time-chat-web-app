@@ -18,6 +18,7 @@ class GetConversationMessages
                 'user_id',
                 'body',
                 'created_at',
+                'edited_at',
             ])
             ->with([
                 'user:id,name,avatar',
@@ -36,6 +37,5 @@ class GetConversationMessages
         );
 
         return $paginator;
-
     }
 }
