@@ -20,7 +20,6 @@ Broadcast::channel('users.{userId}', function ($user, $userId) {
 });
 
 Broadcast::channel('online', function (User $user) {
-
     return [
         'id' => $user->id,
         'name' => $user->name

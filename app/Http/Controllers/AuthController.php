@@ -24,7 +24,7 @@ class AuthController extends Controller
     ) {
         $user = $action->execute($request->validated());
         // return redirect()->route('verification.notice');
-        return redirect()->route('chats.chatboard');
+        return redirect()->route('chats.index');
     }
 
     public function showLoginForm()
@@ -38,7 +38,7 @@ class AuthController extends Controller
     ) {
         if ($action->execute($request->validated())) {
             $request->session()->regenerate();
-            return redirect()->route('chats.chatboard');
+            return redirect()->route('chats.index');
         }
 
         return back()->withErrors([

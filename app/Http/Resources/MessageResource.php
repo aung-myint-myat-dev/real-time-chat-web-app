@@ -18,14 +18,13 @@ class MessageResource extends JsonResource
             'id' => $this->id,
             'body' => $this->body,
             'conversation_id' => $this->conversation_id,
-
             'user' => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
+                'avatar' => $this->user->avatar,
             ],
-
             'created_at' => $this->created_at,
-
+            'edited_at' => $this->edited_at,
             // only included if messageReads relationship is loaded
             'read_at' => $this->whenLoaded('messageReads', function () {
                 return optional($this->messageReads->first())->read_at;

@@ -24,11 +24,24 @@ export function useChatMessages(conversationId) {
         }
     }
 
+    function updateMessage(id, body, edited_at) {
+        const message = messages.value.find((message) => message.id === id);
+        if(!message) return;
+        message.body = body;
+        message.edited_at = edited_at;
+    }
+
+    function deleteMessage(id) {
+        messages.value = messages.value.filter((message) => message.id !== id);
+    }
+
     return {
         messages,
         nextPageUrl,
         getMessages,
         loadOlderMessages,
         appendIfNew,
+        updateMessage,
+        deleteMessage,
     };
 }

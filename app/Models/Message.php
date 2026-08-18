@@ -16,6 +16,10 @@ class Message extends Model
 
     protected $fillable = ['conversation_id', 'user_id', 'reply_message_id', 'body', 'type', 'edited_at', 'deleted_at'];
 
+    protected $casts = [
+        'edited_at' => 'datetime',
+    ];
+
     /**
      * The conversation this message belongs to.
      */

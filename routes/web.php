@@ -30,9 +30,15 @@ Route::middleware(['auth'])
             });
 
         // Messages
-        Route::get('/chats/{conversation}/messages', [MessageController::class, 'index'])->name('message.index');
-        Route::post('/messages', [MessageController::class, 'store'])->name('message.store');
-        Route::post('/messages/{message}/mark-as-read', [MessageController::class, 'markAsRead'])->name('message.read');
+        Route::name('message.')
+        ->controller(MessageController::class)
+        ->group(function () {
+            Route::post('/messages', 'store')->name('store');
+            Route::put('/messages/{message}', 'update')->name('update');
+            Route::delete('/messages/{message}', 'destroy')->name('destroy');
+            Route::post('/messages/{message}/mark-as-read', 'markAsRead')->name('read');
+            Route::get('/chats/{conversation}/messages', 'index')->name('index');
+        });
 
         Route::get('/users/search', [UserSearchController::class, 'index'])->name('users.search');;
 
