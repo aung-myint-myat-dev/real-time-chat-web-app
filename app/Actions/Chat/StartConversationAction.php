@@ -7,6 +7,7 @@ use App\Events\Conversation\ConversationCreated;
 use App\Events\Message\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
+use Illuminate\Support\Facades\DB;
 
 class StartConversationAction
 {
@@ -18,42 +19,47 @@ class StartConversationAction
     {
         $user = auth()->user();
 
-        $conversation = Conversation::create([
-            'created_by' => $user->id,
-            'type' => 'private',
-        ]);
+        return DB::transaction(function () use ($user, $data) {
 
-        $conversation->conversationUsers()->createMany([
-            [
+            $conversation = Conversation::create([
+                'created_by' => $user->id,
+                'type' => 'private',
+            ]);
+
+            $conversation->conversationUsers()->createMany([
+                [
+                    'user_id' => $user->id,
+                    'joined_at' => now(),
+                    'is_muted' => false,
+                    'is_pinned' => false,
+                ],
+                [
+                    'user_id' => $data['other_user_id'],
+                    'joined_at' => now(),
+                    'is_muted' => false,
+                    'is_pinned' => false,
+                ],
+            ]);
+
+            $message = Message::create([
+                'conversation_id' => $conversation->id,
                 'user_id' => $user->id,
-                'joined_at' => now(),
-                'is_muted' => false,
-                'is_pinned' => false,
-            ],
-            [
-                'user_id' => $data['other_user_id'],
-                'joined_at' => now(),
-                'is_muted' => false,
-                'is_pinned' => false,
-            ],
-        ]);
+                'body' => 'Hi',
+            ]);
 
-        $message = Message::create([
-            'conversation_id' => $conversation->id,
-            'user_id' => $user->id,
-            'body' => 'Hi',
-        ]);
-        
-        broadcast(new MessageSent($message));
+            DB::afterCommit(function () use ($conversation, $message) {
+                broadcast(new MessageSent($message));
 
-        $conversation->load('users');
+                $conversation->load('users');
 
-        broadcast(new ConversationCreated(
-            conversation: $conversation,
-        ))->toOthers();
+                broadcast(new ConversationCreated(
+                    conversation: $conversation,
+                ))->toOthers();
 
-        $this->broadcastConversationUpdate->execute($conversation);
+                $this->broadcastConversationUpdate->execute($conversation);
+            });
 
-        return $conversation;
+            return $conversation;
+        });
     }
 }
