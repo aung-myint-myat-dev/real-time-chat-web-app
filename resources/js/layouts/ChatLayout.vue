@@ -7,10 +7,12 @@ import { provideTheme } from "../composables/useTheme.js";
 import { ArrowLeft, MessageCircleWarningIcon } from "@lucide/vue";
 import { useConversationStore } from "../stores/conversationStore.js";
 import Button from "../components/ui/Button.vue";
+import ConfirmDialog from "../components/ui/ConfirmDialog.vue";
 import { useOnlineUsersStore } from "../stores/onlineUsersStore.js";
 import { useNotificationStore } from "../stores/notificationStore.js";
 import NotificationContainer from "../components/notifications/NotificationContainer.vue";
 import { useNotificationSound } from "../composables/useSound.js";
+import axios from "axios";
 provideTheme();
 
 const page = usePage();
@@ -85,6 +87,49 @@ provide("BackToListsHandaler", { handleBackToLists });
 provide("HaldleSelectedChatId", { handleSelectedChatId });
 provide("handleSelectedSearchedUser", { handleSelectedSearchedUser });
 
+const conversationPendingDelete = ref(null);
+const isDeletingConversation = ref(false);
+
+function requestDeleteConversation(conversation) {
+    conversationPendingDelete.value = conversation;
+}
+
+function cancelDeleteConversation() {
+    if (isDeletingConversation.value) return;
+    conversationPendingDelete.value = null;
+}
+
+function removeConversationLocally(conversationId) {
+    Echo.leave(`chats.${conversationId}`);
+    conversationStore.removeConversation(conversationId);
+
+    if (Number(selectedChatId.value) === Number(conversationId)) {
+        router.get("/chats");
+        currentView.value = "lists";
+        selectedChatId.value = null;
+        selectedSearchUser.value = null;
+    }
+}
+
+async function confirmDeleteConversation() {
+    const conversation = conversationPendingDelete.value;
+    if (!conversation || isDeletingConversation.value) return;
+
+    isDeletingConversation.value = true;
+
+    try {
+        await axios.delete(`/chats/${conversation.id}`);
+        conversationPendingDelete.value = null;
+        removeConversationLocally(conversation.id);
+    } catch (error) {
+        console.error("Failed to delete conversation:", error);
+    } finally {
+        isDeletingConversation.value = false;
+    }
+}
+
+provide("DeleteConversation", { requestDeleteConversation });
+
 onMounted(() => {
     if (typeof window !== 'undefined') {
         window.addEventListener("popstate", handlePopState);
@@ -110,6 +155,9 @@ onMounted(() => {
                 playSound();
                 notificationStore.add(e);
             }
+        })
+        .listen(".conversation.deleted", (e) => {
+            removeConversationLocally(e.conversation_id);
         });
 
     conversationStore.conversations.forEach((conversation) => {
@@ -147,6 +195,16 @@ onUnmounted(() => {
     <div class="h-screen font-brand flex bg-background text-text-color">
 
         <NotificationContainer :notifications="notificationStore.notifications" @close="notificationStore.remove" />
+
+        <ConfirmDialog
+            v-if="conversationPendingDelete"
+            title="Delete conversation?"
+            description="This permanently deletes the chat and all messages for both people. This cannot be undone."
+            confirm-label="Delete"
+            :is-loading="isDeletingConversation"
+            @cancel="cancelDeleteConversation"
+            @confirm="confirmDeleteConversation"
+        />
 
         <!-- Layout Sidebar -->
         <div :class="[

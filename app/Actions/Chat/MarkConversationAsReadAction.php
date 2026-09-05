@@ -2,6 +2,7 @@
 
 namespace App\Actions\Chat;
 
+use App\Events\Message\MessagesRead;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
@@ -13,55 +14,78 @@ class MarkConversationAsReadAction
         private BroadcastConversationUpdateAction $broadcastConversationUpdate,
     ) {}
 
-    public function execute(Conversation $conversation, User $user): void
+    public function execute(Conversation $conversation, User $user, ?int $upToMessageId = null): void
     {
-        /**
-         * Retriving last message id form conversation
-         */
-        $lastMessageId = Message::query()
-        ->where('conversation_id', $conversation->id)
-        ->latest('id')
-        ->value('id');
-
-        /**
-         * Retriving all unread messages from message via reads relations
-         */
-        $unreadMessageIds = Message::query()
-        ->where('conversation_id', $conversation->id)
-        ->whereDoesntHave('reads', function ($q) use ($user) {
-            $q->where('user_id', $user->id);
-        })
-        ->pluck('id'); // this return collection that cant be serialized into array
-
-        /**
-         * If all messages are already read, return
-         */
-        if($unreadMessageIds->isEmpty()) {
+        if ($upToMessageId && ! $this->messageBelongsToConversation($conversation, $upToMessageId)) {
             return;
         }
 
-        /**
-         * Looping unread messages to store
-         */
+        $unreadMessageIds = Message::query()
+            ->where('conversation_id', $conversation->id)
+            ->where('user_id', '!=', $user->id)
+            ->whereDoesntHave('reads', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->when($upToMessageId, fn ($query) => $query->where('id', '<=', $upToMessageId))
+            ->pluck('id');
+
+        if ($unreadMessageIds->isEmpty()) {
+            $this->advanceLastReadMessageId($conversation, $user, $upToMessageId);
+
+            return;
+        }
+
+        $now = now();
         $insertData = $unreadMessageIds->map(fn ($id) => [
             'user_id' => $user->id,
             'message_id' => $id,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'read_at' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
         ])->toArray();
 
         DB::table('message_reads')->insertOrIgnore($insertData);
 
-        /**
-         * Update conversation's last read message id.
-         */
-        $conversation->conversationUsers()
-        ->where('user_id', $user->id)
-        ->update(['last_read_message_id' => $lastMessageId]);
+        $lastReadId = max(
+            array_filter([$unreadMessageIds->max(), $upToMessageId])
+        );
 
-        /**
-         * Broadcasting conversation update event
-         */
+        $this->advanceLastReadMessageId($conversation, $user, $lastReadId);
+
+        broadcast(new MessagesRead(
+            conversationId: $conversation->id,
+            readerId: $user->id,
+            messageIds: $unreadMessageIds->all(),
+            readAt: $now->toIso8601String(),
+        ))->toOthers();
+
         $this->broadcastConversationUpdate->execute($conversation);
+    }
+
+    private function messageBelongsToConversation(Conversation $conversation, int $messageId): bool
+    {
+        return Message::query()
+            ->where('conversation_id', $conversation->id)
+            ->where('id', $messageId)
+            ->exists();
+    }
+
+    private function advanceLastReadMessageId(Conversation $conversation, User $user, ?int $messageId): void
+    {
+        if (! $messageId) {
+            return;
+        }
+
+        $currentLastRead = $conversation->conversationUsers()
+            ->where('user_id', $user->id)
+            ->value('last_read_message_id');
+
+        if ($currentLastRead && $messageId <= $currentLastRead) {
+            return;
+        }
+
+        $conversation->conversationUsers()
+            ->where('user_id', $user->id)
+            ->update(['last_read_message_id' => $messageId]);
     }
 }

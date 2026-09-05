@@ -14,6 +14,8 @@ class MessageResource extends JsonResource
      */
     public function toArray(Request $request)
     {
+        $authId = $request->user()?->id;
+
         return [
             'id' => $this->id,
             'body' => $this->body,
@@ -25,9 +27,21 @@ class MessageResource extends JsonResource
             ],
             'created_at' => $this->created_at,
             'edited_at' => $this->edited_at,
-            // only included if messageReads relationship is loaded
-            'read_at' => $this->whenLoaded('messageReads', function () {
-                return optional($this->messageReads->first())->read_at;
+            'is_read' => $this->whenLoaded('reads', function () use ($authId) {
+                if ($this->user_id === $authId) {
+                    return false;
+                }
+
+                $lastReadId = $this->viewer_last_read_message_id;
+
+                if ($lastReadId && $this->id <= (int) $lastReadId) {
+                    return true;
+                }
+
+                return $this->reads->contains('user_id', $authId);
+            }),
+            'seen_at' => $this->whenLoaded('reads', function () {
+                return optional($this->reads->firstWhere('user_id', '!=', $this->user_id))->read_at;
             }),
         ];
     }

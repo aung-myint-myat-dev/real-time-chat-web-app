@@ -86,6 +86,53 @@ export const useConversationStore = defineStore("conversations", () => {
         };
     };
 
+    const applyReadUpTo = (conversationId, messageId, markedCount) => {
+        const conversation = conversations.value.find(
+            (c) => c.id === conversationId,
+        );
+
+        if (!conversation) return;
+
+        conversation.unread_count = Math.max(
+            0,
+            (conversation.unread_count ?? 0) - markedCount,
+        );
+
+        if (
+            conversation.unread?.firstMessageId &&
+            conversation.unread.firstMessageId <= messageId
+        ) {
+            conversation.unread.count = Math.max(
+                0,
+                (conversation.unread.count ?? 0) - markedCount,
+            );
+            conversation.unread.firstMessageId = null;
+        }
+    };
+
+    const setUnreadCount = (conversationId, count) => {
+        const conversation = conversations.value.find(
+            (c) => c.id === conversationId,
+        );
+
+        if (!conversation) return;
+
+        conversation.unread_count = Math.max(0, count ?? 0);
+
+        if (conversation.unread_count === 0) {
+            conversation.unread = {
+                count: 0,
+                firstMessageId: null,
+            };
+        }
+    };
+
+    const removeConversation = (conversationId) => {
+        conversations.value = conversations.value.filter(
+            (c) => Number(c.id) !== Number(conversationId),
+        );
+    };
+
     const getConversation = (conversationId) => {
         return conversations.value.find((c) => c.id === conversationId);
     };
@@ -99,6 +146,9 @@ export const useConversationStore = defineStore("conversations", () => {
 
         addUnreadMessage,
         clearUnreadMessages,
+        applyReadUpTo,
+        setUnreadCount,
+        removeConversation,
         getConversation,
     };
 });

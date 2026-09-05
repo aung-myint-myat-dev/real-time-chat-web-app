@@ -1,5 +1,5 @@
 <script setup>
-import { inject, onMounted, computed, ref } from "vue";
+import { onMounted, onUnmounted, computed, ref, watch } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import Dropdown from "../ui/Dropdown.vue";
 import { MoreVertical, PenBox, Pencil, Trash2 } from "@lucide/vue";
@@ -9,18 +9,80 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    observerRoot: {
+        default: null,
+    },
+    observeRead: {
+        type: Boolean,
+        default: true,
+    },
 });
 
-defineEmits([
+const emit = defineEmits([
     'edit',
     'delete',
-])
+    'viewed',
+]);
 
 const page = usePage();
 const authUser = computed(() => page.props.auth.user);
 const senderName = computed(() => props.message.user?.name);
 const isMe = computed(() => authUser.value.id === props.message.user.id ?? false,);
 const isUpdated = computed(() => props.message.created_at !== props.message.updated_at);
+const isUnreadIncoming = computed(() => (
+    props.observeRead && !isMe.value && !props.message.is_read
+));
+
+const rootEl = ref(null);
+let observer = null;
+
+function setupObserver() {
+    observer?.disconnect();
+    observer = null;
+
+    if (!isUnreadIncoming.value || !rootEl.value) {
+        return;
+    }
+
+    observer = new IntersectionObserver(
+        (entries) => {
+            const entry = entries[0];
+            if (!entry?.isIntersecting || document.hidden) {
+                return;
+            }
+
+            emit('viewed', props.message);
+            observer?.disconnect();
+        },
+        {
+            root: props.observerRoot ?? null,
+            threshold: 0.4,
+        },
+    );
+
+    observer.observe(rootEl.value);
+}
+
+watch(
+    () => [props.observerRoot, isUnreadIncoming.value, props.observeRead],
+    () => setupObserver(),
+);
+
+function handleVisibilityChange() {
+    if (!document.hidden && isUnreadIncoming.value) {
+        setupObserver();
+    }
+}
+
+onMounted(() => {
+    setupObserver();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+});
+
+onUnmounted(() => {
+    observer?.disconnect();
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+});
 
 const dateFormatter = (timestamp) => {
     const date = new Date(timestamp);
@@ -38,7 +100,7 @@ const dateFormatter = (timestamp) => {
 </script>
 
 <template>
-    <div :id="`message-${message.id}`" :class="[
+    <div ref="rootEl" :id="`message-${message.id}`" :data-message-id="message.id" :class="[
         'flex items-end space-x-2 p-2 max-w-[85%] sm:max-w-[70%]',
         isMe ? 'ml-auto flex-row-reverse space-x-reverse' : 'mr-auto',
     ]">
@@ -60,14 +122,14 @@ const dateFormatter = (timestamp) => {
             </div>
 
             <span :class="[
-                'text-[10px] text-slate-400 dark:text-slate-500 mt-1',
-                message.edited_at ?? 'flex items-center gap-1',
+                'text-[10px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1',
                 isMe ? 'text-right justify-end' : 'text-left justify-start',
             ]">
                 <span v-if="message.edited_at">Edited </span>
                 <span>
                     {{ message.edited_at ? dateFormatter(message.edited_at) : dateFormatter(message.created_at) }}
                 </span>
+                <span v-if="isMe && message.seen_at">Seen</span>
             </span>
 
             <div class="absolute top-1/2 -translate-y-1/2 -left-8">

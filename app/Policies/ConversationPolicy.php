@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Conversation;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ConversationPolicy
 {
@@ -47,7 +46,9 @@ class ConversationPolicy
      */
     public function delete(User $user, Conversation $conversation): bool
     {
-        return false;
+        return $conversation->users()
+            ->where('users.id', $user->id)
+            ->exists();
     }
 
     /**

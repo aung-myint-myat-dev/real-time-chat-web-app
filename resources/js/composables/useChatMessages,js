@@ -1,32 +1,116 @@
-import { ref } from "vue";
+import { ref, nextTick } from "vue";
 import axios from "axios";
 
-export function useChatMessages(conversationId) {
+export function useChatMessages({ getContainer } = {}) {
     const messages = ref([]);
-    const nextPageUrl = ref(null);
+    const hasOlder = ref(false);
+    const hasNewer = ref(false);
+    const firstUnreadMessageId = ref(null);
+    const loadingOlder = ref(false);
+    const loadingNewer = ref(false);
+    let conversationId = null;
 
-    async function getMessages(id) {
-        const { data } = await axios.get(`/chats/${id}/messages`);
+    function applyMeta(meta) {
+        hasOlder.value = Boolean(meta?.has_older);
+        hasNewer.value = Boolean(meta?.has_newer);
+        firstUnreadMessageId.value = meta?.first_unread_message_id ?? null;
+    }
+
+    async function getMessages(id, { fromUnread = false } = {}) {
+        conversationId = id;
+        const { data } = await axios.get(`/chats/${id}/messages`, {
+            params: fromUnread ? { from_unread: 1 } : {},
+        });
         messages.value = data.data;
-        nextPageUrl.value = data.links.next;
+        applyMeta(data.meta);
     }
 
     async function loadOlderMessages() {
-        if (!nextPageUrl.value) return;
-        const { data } = await axios.get(nextPageUrl.value);
-        messages.value = [...data.data, ...messages.value];
-        nextPageUrl.value = data.links.next;
+        if (!conversationId || !hasOlder.value || loadingOlder.value || !messages.value.length) {
+            return;
+        }
+
+        loadingOlder.value = true;
+        const container = getContainer?.();
+        const previousHeight = container?.scrollHeight ?? 0;
+        const previousTop = container?.scrollTop ?? 0;
+
+        try {
+            const { data } = await axios.get(`/chats/${conversationId}/messages`, {
+                params: { before_id: messages.value[0].id },
+            });
+            messages.value = [...data.data, ...messages.value];
+            applyMeta({
+                ...data.meta,
+                has_newer: hasNewer.value || Boolean(data.meta?.has_newer),
+            });
+            await nextTick();
+            if (container && previousHeight) {
+                container.scrollTop = previousTop + (container.scrollHeight - previousHeight);
+            }
+        } finally {
+            loadingOlder.value = false;
+        }
+    }
+
+    async function loadNewerMessages() {
+        if (!conversationId || !hasNewer.value || loadingNewer.value || !messages.value.length) {
+            return;
+        }
+
+        loadingNewer.value = true;
+
+        try {
+            const lastId = messages.value[messages.value.length - 1].id;
+            const { data } = await axios.get(`/chats/${conversationId}/messages`, {
+                params: { after_id: lastId },
+            });
+            messages.value = [...messages.value, ...data.data];
+            applyMeta({
+                ...data.meta,
+                has_older: hasOlder.value || Boolean(data.meta?.has_older),
+            });
+        } finally {
+            loadingNewer.value = false;
+        }
     }
 
     function appendIfNew(message) {
         if (!messages.value.some((m) => m.id === message.id)) {
-            messages.value.push(message);
+            messages.value.push({
+                ...message,
+                is_read: message.is_read ?? false,
+            });
         }
+    }
+
+    function markReadUpTo(messageId, authUserId) {
+        let marked = 0;
+
+        messages.value.forEach((message) => {
+            const senderId = message.user?.id ?? message.user_id;
+            if (message.id <= messageId && senderId !== authUserId && !message.is_read) {
+                message.is_read = true;
+                marked += 1;
+            }
+        });
+
+        return marked;
+    }
+
+    function applySeen(messageIds, readAt) {
+        const ids = new Set((messageIds ?? []).map((id) => Number(id)));
+
+        messages.value.forEach((message) => {
+            if (ids.has(Number(message.id))) {
+                message.seen_at = readAt;
+            }
+        });
     }
 
     function updateMessage(id, body, edited_at) {
         const message = messages.value.find((message) => message.id === id);
-        if(!message) return;
+        if (!message) return;
         message.body = body;
         message.edited_at = edited_at;
     }
@@ -37,10 +121,15 @@ export function useChatMessages(conversationId) {
 
     return {
         messages,
-        nextPageUrl,
+        hasOlder,
+        hasNewer,
+        firstUnreadMessageId,
         getMessages,
         loadOlderMessages,
+        loadNewerMessages,
         appendIfNew,
+        markReadUpTo,
+        applySeen,
         updateMessage,
         deleteMessage,
     };

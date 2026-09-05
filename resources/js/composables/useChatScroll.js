@@ -1,19 +1,34 @@
-import { ref, nextTick } from "vue";
+import { ref, nextTick, unref } from "vue";
 
-const NEAR_TOP_THRESHOLD = 0.5; // fraction of viewport height
-const NEAR_BOTTOM_THRESHOLD = 2; // multiples of viewport height
+const NEAR_TOP_THRESHOLD = 0.5;
+const NEAR_BOTTOM_THRESHOLD = 1;
 
-export function useChatScroll({ onLoadOlder }) {
-    const containerRef = ref(null);
+export function useChatScroll({ containerRef: externalContainerRef, onLoadOlder, onLoadNewer, hasNewer } = {}) {
+    const containerRef = externalContainerRef ?? ref(null);
     const isAtBottom = ref(true);
     const showScrollButton = ref(false);
     const unreadCount = ref(0);
     const pendingScrollTargetId = ref(null);
 
-    function scrollToMessageId(id, { markAsRead } = {}) {
-        const el = document.getElementById(`message-${id}`);
-        el?.scrollIntoView({ behavior: "smooth", block: "center" });
-        if (markAsRead) markAsRead(id);
+    function scrollToMessageId(id) {
+        const container = containerRef.value;
+        const el = container?.querySelector(`#message-${id}`)
+            ?? document.getElementById(`message-${id}`);
+
+        if (!container || !el) {
+            return false;
+        }
+
+        const unreadMarker = container.querySelector(`#unread-start-${id}`);
+        const target = unreadMarker ?? el;
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+
+        container.scrollTop += targetRect.top - containerRect.top - 8;
+        isAtBottom.value = false;
+        showScrollButton.value = true;
+
+        return true;
     }
 
     async function scrollToBottom() {
@@ -24,9 +39,10 @@ export function useChatScroll({ onLoadOlder }) {
         if (pendingScrollTargetId.value) {
             scrollToMessageId(pendingScrollTargetId.value);
             pendingScrollTargetId.value = null;
-        } else {
-            el.scrollTop = el.scrollHeight;
+            return;
         }
+
+        el.scrollTop = el.scrollHeight;
         showScrollButton.value = false;
         unreadCount.value = 0;
         isAtBottom.value = true;
@@ -42,8 +58,13 @@ export function useChatScroll({ onLoadOlder }) {
 
         const distanceFromBottom =
             el.scrollHeight - el.clientHeight - el.scrollTop;
+
+        if (unref(hasNewer) && distanceFromBottom < el.clientHeight * NEAR_BOTTOM_THRESHOLD) {
+            onLoadNewer?.();
+        }
+
         isAtBottom.value =
-            distanceFromBottom <= el.clientHeight * NEAR_BOTTOM_THRESHOLD;
+            !unref(hasNewer) && distanceFromBottom <= el.clientHeight * 0.35;
         showScrollButton.value = !isAtBottom.value;
     }
 
